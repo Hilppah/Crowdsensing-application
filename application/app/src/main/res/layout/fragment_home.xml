@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#d8edff"
-    android:orientation="vertical"
     tools:context=".HomeFragment">
 
     <androidx.appcompat.widget.Toolbar
@@ -24,88 +23,135 @@
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:spinnerMode="dropdown"
+            android:textColor="#032174"
             android:entries="@array/spinner_items" />
     </androidx.appcompat.widget.Toolbar>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/toolbar">
-
-        <LinearLayout
-            android:id="@+id/main_content"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
             <TextView
-                android:id="@+id/TextView"
+                android:id="@+id/TextView2"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="100dp"
+                android:layout_marginTop="50dp"
                 android:ems="10"
-                android:text="Choose what you are trying to mesure:"
+                android:text="Choose what you are trying to measure:"
                 android:textAlignment="center"
                 android:textAppearance="@dimen/material_emphasis_medium"
-                android:textColor="#69a6ff"
+                android:textColor="#015BA0"
                 android:textSize="18sp" />
 
             <Spinner
                 android:id="@+id/useCase_spinner"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/TextView2"
                 android:layout_width="190dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
-                android:background="#be9a2"
-                android:backgroundTint="#dbbadd"
-                android:outlineSpotShadowColor="@color/black"
+                android:background="#DBBADD"
+                android:backgroundTint="#DACEEE"
+                android:textColor="#BE92A2"
+                android:dropDownSelector="@drawable/selector"
                 android:entries="@array/spinner_itemsAction"
-                android:padding="10dp"
-                android:spinnerMode="dropdown"
-                />
+                android:padding="10dp" />
 
-            <TextView
-                android:id="@+id/TextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
-                android:ems="10"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                android:text="What rate you want the data to be saved:" />
+    <TextView
+        android:id="@+id/TextView"
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/useCase_spinner"
+        android:layout_marginTop="35dp"
+        android:ems="10"
+        android:text="What rate you want the data to be saved:"
+        android:textAlignment="center"
+        android:textColor="#015BA0"
+        android:textSize="18sp" />
 
-            <EditText
-                android:id="@+id/input_sampling_rate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="Type your desired time "
-                android:layout_marginTop="30dp"
-                android:layout_marginBottom="150dp"
-                android:textAlignment="center"
-                android:layout_gravity="center"
-                android:textSize="16sp"
-                android:inputType="number" />
+    <EditText
+        android:id="@+id/input_sampling_rate"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TextView"
+        android:layout_gravity="center"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="30dp"
+        android:hint="Type your desired time "
+        android:inputType="number"
+        android:textAlignment="center"
+        android:textColor="#015BA0"
+        android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/btn_start"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="#dbbadd"
-                android:padding="20dp"
-                android:text="Start measuring"
-                android:layout_marginBottom="10dp"
-                android:layout_gravity="center"/>
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchGPS"
+        android:layout_width="248dp"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/input_sampling_rate"
+        android:layout_marginTop="20dp"
+        android:text="GPS" />
 
-            <Button
-                android:id="@+id/btn_stop"
-                android:background="#dbbadd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Stop"
-                android:layout_gravity="center"/>
+    <Switch
+        android:id="@+id/switchProximity"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchGPS"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:textColor="#015BA0"
+        android:text="Proximity" />
 
-        </LinearLayout>
-    </ScrollView>
+    <Switch android:id="@+id/switchAccelerometer"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchProximity"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:textColor="#015BA0"
+        android:text="Accelerometer" />
+
+    <Switch
+        android:id="@+id/switchGyro"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchAccelerometer"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:text="Gyro"
+        android:textColor="#015BA0"/>
+
+    <Switch
+        android:id="@+id/switchCompass"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchGyro"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#015BA0"
+        android:text="Compass" />
+
+    <Button
+        android:id="@+id/buttonStart"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchCompass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#BE92A2"
+        android:background="#DACEEE"
+        android:layout_marginTop="40dp"
+        android:padding="20dp"
+        android:text="Start measuring"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center"/>
+
+    <Button
+        android:id="@+id/buttonStop"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/buttonStart"
+        android:background="#DACEEE"
+        android:textColor="#BE92A2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop"
+        android:layout_gravity="center"/>
 
 </RelativeLayout>
