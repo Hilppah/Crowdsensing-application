@@ -1,3 +1,17 @@
 <resources>
     <string name="app_name">Crowdsensing</string>
+
+    <string-array name="spinner_items">
+        <item>Measure</item>
+        <item>Search measurements</item>
+    </string-array>
+
+    <string-array name="spinner_itemsAction">
+        <item>Walk</item>
+        <item>Run</item>
+        <item> Turn right </item>
+        <item>Turn left </item>
+        <item>Walk up stairs</item>
+        <item>Walk down stairs</item>
+    </string-array>
 </resources>

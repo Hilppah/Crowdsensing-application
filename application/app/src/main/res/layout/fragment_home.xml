@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#d8edff"
+    tools:context=".HomeFragment">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="#96cdff"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        android:padding="15dp">
+
+        <Spinner
+            android:id="@+id/toolbar_spinner"
+            android:layout_width="wrap_content"
+            android:dropDownSelector=""
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:spinnerMode="dropdown"
+            android:textColor="#032174"
+            android:entries="@array/spinner_items" />
+    </androidx.appcompat.widget.Toolbar>
+
+            <TextView
+                android:id="@+id/TextView2"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:ems="10"
+                android:text="Choose what you are trying to measure:"
+                android:textAlignment="center"
+                android:textAppearance="@dimen/material_emphasis_medium"
+                android:textColor="#015BA0"
+                android:textSize="18sp" />
+
+            <Spinner
+                android:id="@+id/useCase_spinner"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/TextView2"
+                android:layout_width="190dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:background="#DBBADD"
+                android:backgroundTint="#DACEEE"
+                android:textColor="#BE92A2"
+                android:dropDownSelector="@drawable/selector"
+                android:entries="@array/spinner_itemsAction"
+                android:padding="10dp" />
+
+    <TextView
+        android:id="@+id/TextView"
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/useCase_spinner"
+        android:layout_marginTop="35dp"
+        android:ems="10"
+        android:text="What rate you want the data to be saved:"
+        android:textAlignment="center"
+        android:textColor="#015BA0"
+        android:textSize="18sp" />
+
+    <EditText
+        android:id="@+id/input_sampling_rate"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TextView"
+        android:layout_gravity="center"
+        android:layout_marginTop="25dp"
+        android:layout_marginBottom="30dp"
+        android:hint="Type your desired time "
+        android:inputType="number"
+        android:textAlignment="center"
+        android:textColor="#015BA0"
+        android:textSize="16sp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchGPS"
+        android:layout_width="248dp"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/input_sampling_rate"
+        android:layout_marginTop="20dp"
+        android:text="GPS" />
+
+    <Switch
+        android:id="@+id/switchProximity"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchGPS"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:textColor="#015BA0"
+        android:text="Proximity" />
+
+    <Switch android:id="@+id/switchAccelerometer"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchProximity"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:textColor="#015BA0"
+        android:text="Accelerometer" />
+
+    <Switch
+        android:id="@+id/switchGyro"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchAccelerometer"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:text="Gyro"
+        android:textColor="#015BA0"/>
+
+    <Switch
+        android:id="@+id/switchCompass"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchGyro"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#015BA0"
+        android:text="Compass" />
+
+    <Button
+        android:id="@+id/buttonStart"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchCompass"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#BE92A2"
+        android:background="#DACEEE"
+        android:layout_marginTop="40dp"
+        android:padding="20dp"
+        android:text="Start measuring"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center"/>
+
+    <Button
+        android:id="@+id/buttonStop"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/buttonStart"
+        android:background="#DACEEE"
+        android:textColor="#BE92A2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stop"
+        android:layout_gravity="center"/>
+
+</RelativeLayout>
