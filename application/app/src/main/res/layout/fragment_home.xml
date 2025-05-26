@@ -19,7 +19,6 @@
         <Spinner
             android:id="@+id/toolbar_spinner"
             android:layout_width="wrap_content"
-            android:dropDownSelector=""
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:spinnerMode="dropdown"

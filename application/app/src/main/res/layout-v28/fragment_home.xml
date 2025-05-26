@@ -87,7 +87,7 @@
                 android:inputType="number" />
 
             <Button
-                android:id="@+id/btn_start"
+                android:id="@+id/buttonStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="#dbbadd"
@@ -98,7 +98,7 @@
                 android:layout_gravity="center"/>
 
             <Button
-                android:id="@+id/btn_stop"
+                android:id="@+id/buttonStop"
                 android:background="#dbbadd"
                 android:textColor="#be92a2"
                 android:layout_width="wrap_content"
