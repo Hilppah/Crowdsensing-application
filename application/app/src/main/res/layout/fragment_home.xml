@@ -153,4 +153,12 @@
         android:text="Stop"
         android:layout_gravity="center"/>
 
+    <TextView
+        android:id="@+id/textViewGyro"
+        android:layout_width="370dp"
+        android:layout_height="147dp"
+        android:layout_below="@+id/toolbar"
+        android:layout_marginTop="15dp"
+        android:text="TextView" />
+
 </RelativeLayout>
