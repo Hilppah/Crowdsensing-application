@@ -25,13 +25,23 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var gyroscope: Sensor? = null
     private var accelerometer: Sensor? = null
+    private var proximity: Sensor? = null
+    private var magnetometer: Sensor? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private lateinit var gyroscopeData: TextView
+    private lateinit var accelerometerData: TextView
+    private lateinit var gpsData: TextView
+    private lateinit var proximityData: TextView
+    private lateinit var compassData: TextView
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
     private val alpha = 0.8f
+    private val gravity = FloatArray(3)
+    private val geomagnetic = FloatArray(3)
+    private var hasGravity = false
+    private var hasMagnet = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,11 +51,17 @@ class HomeFragment : Fragment(), SensorEventListener {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         gyroscopeData = view.findViewById(R.id.textViewGyro)
+        accelerometerData = view.findViewById(R.id.textViewAccelerometer)
+        gpsData = view.findViewById(R.id.textViewGPS)
+        proximityData = view.findViewById(R.id.textViewProximity)
+        compassData = view.findViewById(R.id.textViewCompass)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
         return view
     }
@@ -56,7 +72,13 @@ class HomeFragment : Fragment(), SensorEventListener {
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> gyro(event)
             Sensor.TYPE_ACCELEROMETER -> accelerometer(event)
+            Sensor.TYPE_PROXIMITY -> proximity(event)
+            Sensor.TYPE_PROXIMITY -> proximity(event)
+            Sensor.TYPE_MAGNETIC_FIELD -> updateMagnetometer(event)
         }
+        updateCompass()
+
+
     }
 
     private fun gyro(event: SensorEvent) {
@@ -73,9 +95,35 @@ class HomeFragment : Fragment(), SensorEventListener {
         accelLin[1] = event.values[1] - accelGravity[1]
         accelLin[2] = event.values[2] - accelGravity[2]
 
-        gyroscopeData.text = accelLin[0].toString()
-        gyroscopeData.text = accelLin[1].toString()
-        gyroscopeData.text = accelLin[2].toString()
+        accelerometerData.text = "Accelerometer:\nX: ${accelLin[0]}\nY: ${accelLin[1]}\nZ: ${accelLin[2]}"
+    }
+
+    private fun proximity(event: SensorEvent) {
+        val distance = event.values[0]
+        proximityData.text = "Proximity: $distance cm"
+    }
+
+    private fun updateCompass() {
+        if (!hasGravity || !hasMagnet) return
+
+        val R = FloatArray(9)
+        val I = FloatArray(9)
+
+        if (SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)) {
+            val orientation = FloatArray(3)
+            SensorManager.getOrientation(R, orientation)
+            val azimuthRad = orientation[0]
+            val azimuthDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
+            val azimuthNormalized = (azimuthDeg + 360) % 360
+            compassData.text = "Compass: ${azimuthNormalized.toInt()}°"
+        }
+    }
+
+    private fun updateMagnetometer(event: SensorEvent) {
+        geomagnetic[0] = event.values[0]
+        geomagnetic[1] = event.values[1]
+        geomagnetic[2] = event.values[2]
+        hasMagnet = true
     }
 
     override fun onResume() {
@@ -84,6 +132,12 @@ class HomeFragment : Fragment(), SensorEventListener {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
         accelerometer?.also {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        proximity?.also {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        magnetometer?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
