@@ -3,6 +3,7 @@ package com.crowdsensing
 import android.Manifest
 import android.content.Context
 import android.content.Context.SENSOR_SERVICE
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -16,6 +17,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -42,6 +44,7 @@ class HomeFragment : Fragment(), SensorEventListener {
     private val geomagnetic = FloatArray(3)
     private var hasGravity = false
     private var hasMagnet = false
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1001
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,14 +74,18 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> gyro(event)
-            Sensor.TYPE_ACCELEROMETER -> accelerometer(event)
-            Sensor.TYPE_PROXIMITY -> proximity(event)
+            Sensor.TYPE_ACCELEROMETER -> {
+                accelerometer(event)
+                gravity[0] = event.values[0]
+                gravity[1] = event.values[1]
+                gravity[2] = event.values[2]
+                hasGravity = true
+            }
             Sensor.TYPE_PROXIMITY -> proximity(event)
             Sensor.TYPE_MAGNETIC_FIELD -> updateMagnetometer(event)
         }
+
         updateCompass()
-
-
     }
 
     private fun gyro(event: SensorEvent) {
@@ -115,7 +122,30 @@ class HomeFragment : Fragment(), SensorEventListener {
             val azimuthRad = orientation[0]
             val azimuthDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
             val azimuthNormalized = (azimuthDeg + 360) % 360
-            compassData.text = "Compass: ${azimuthNormalized.toInt()}°"
+
+            val direction = getCompassDirection(azimuthNormalized)
+            compassData.text = "Compass: ${azimuthNormalized.toInt()}° ($direction)"
+        }
+    }
+
+    private fun checkLocationPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun getCompassDirection(azimuth: Float): String {
+        return when (azimuth) {
+            in 337.5..360.0, in 0.0..22.5 -> "North"
+            in 22.5..67.5 -> "Northeast"
+            in 67.5..112.5 -> "East"
+            in 112.5..157.5 -> "Southeast"
+            in 157.5..202.5 -> "South"
+            in 202.5..247.5 -> "Southwest"
+            in 247.5..292.5 -> "West"
+            in 292.5..337.5 -> "Northwest"
+            else -> "Unknown"
         }
     }
 
@@ -139,6 +169,40 @@ class HomeFragment : Fragment(), SensorEventListener {
         }
         magnetometer?.also {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        if (!checkLocationPermission()) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+        if (checkLocationPermission()) {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        val latitude = it.latitude
+                        val longitude = it.longitude
+                        gpsData.text = "GPS:\nLat: $latitude\nLon: $longitude"
+                    } ?: run {
+                        gpsData.text = "GPS: Location unavailable"
+                    }
+                }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                onResume()
+            } else {
+                gpsData.text = "GPS: Permission denied"
+            }
         }
     }
 
