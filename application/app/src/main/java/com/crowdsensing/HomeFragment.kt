@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.annotation.RequiresPermission
@@ -22,6 +23,8 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+
 
 class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
@@ -52,6 +55,25 @@ class HomeFragment : Fragment(), SensorEventListener {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
+
+        val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
+
+        val useCaseItems = resources.getStringArray(R.array.spinner_itemsAction)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, useCaseItems)
+
+        useCaseSpinner.setAdapter(adapter)
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
+        useCaseSpinner.setOnClickListener {
+            useCaseSpinner.showDropDown()
+        }
+
+
+        useCaseSpinner.setAdapter(adapter)
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
 
         gyroscopeData = view.findViewById(R.id.textViewGyro)
         accelerometerData = view.findViewById(R.id.textViewAccelerometer)

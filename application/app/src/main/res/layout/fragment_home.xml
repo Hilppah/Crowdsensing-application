@@ -32,7 +32,7 @@
                 android:layout_below="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
+                android:layout_marginTop="35dp"
                 android:ems="10"
                 android:text="Choose what you are trying to measure:"
                 android:textAlignment="center"
@@ -40,20 +40,20 @@
                 android:textColor="#015BA0"
                 android:textSize="18sp" />
 
-            <Spinner
-                android:id="@+id/useCase_spinner"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@+id/TextView2"
-                android:layout_width="190dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:background="#DBBADD"
-                android:backgroundTint="#DACEEE"
-                android:textColor="#BE92A2"
-                android:dropDownSelector="@drawable/selector"
-                android:entries="@array/spinner_itemsAction"
-                android:padding="10dp" />
+    <AutoCompleteTextView
+        android:id="@+id/useCase_spinner"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/TextView2"
+        android:layout_width="190dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:background="#DACEEE"
+        android:dropDownHeight="200dp"
+        android:inputType="none"
+        android:focusable="false"
+        android:textColor="#BE92A2"
+        android:padding="10dp"
+        android:hint="Select an option" />
 
     <TextView
         android:id="@+id/TextView"
@@ -61,7 +61,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/useCase_spinner"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="20dp"
         android:ems="10"
         android:text="What rate you want the data to be saved:"
         android:textAlignment="center"
@@ -75,21 +75,21 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/TextView"
         android:layout_gravity="center"
-        android:layout_marginTop="25dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginTop="5dp"
         android:hint="Type your desired time "
         android:inputType="number"
         android:textAlignment="center"
         android:textColor="#015BA0"
         android:textSize="16sp" />
 
-    <androidx.appcompat.widget.SwitchCompat
+    <Switch
         android:id="@+id/switchGPS"
         android:layout_width="248dp"
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:layout_below="@+id/input_sampling_rate"
         android:layout_marginTop="20dp"
+        android:textColor="#015BA0"
         android:text="GPS" />
 
     <Switch
@@ -131,7 +131,7 @@
     <Button
         android:id="@+id/buttonStart"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/switchCompass"
+        android:layout_below="@+id/textViewCompass"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#BE92A2"
@@ -155,18 +155,22 @@
 
     <TextView
         android:id="@+id/textViewGyro"
-        android:layout_width="249dp"
-        android:layout_height="72dp"
-        android:layout_below="@+id/toolbar"
+        android:textColor="#015BA0"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/switchCompass"
         android:layout_marginTop="15dp"
+        android:layout_centerHorizontal="true"
         android:text="TextView" />
 
     <TextView
         android:id="@+id/textViewGPS"
+        android:textColor="#015BA0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewGyro"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="1dp"
+        android:layout_centerHorizontal="true"
         android:text="TextView" />
 
     <TextView
@@ -174,7 +178,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewGPS"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="1dp"
+        android:textColor="#015BA0"
+        android:layout_centerHorizontal="true"
         android:text="TextView" />
 
     <TextView
@@ -182,7 +188,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewAccelerometer"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="1dp"
+        android:textColor="#015BA0"
+        android:layout_centerHorizontal="true"
         android:text="TextView" />
 
     <TextView
@@ -190,7 +198,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewProximity"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="1dp"
+        android:textColor="#015BA0"
+        android:layout_centerHorizontal="true"
         android:text="TextView" />
 
 </RelativeLayout>
