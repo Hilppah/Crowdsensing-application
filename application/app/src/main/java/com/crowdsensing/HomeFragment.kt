@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
@@ -24,6 +25,10 @@ import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.crowdsensing.ViewDataFragment
 
 
 class HomeFragment : Fragment(), SensorEventListener {
@@ -39,6 +44,7 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var gpsData: TextView
     private lateinit var proximityData: TextView
     private lateinit var compassData: TextView
+    private lateinit var NavToolBar: Spinner
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
@@ -69,6 +75,9 @@ class HomeFragment : Fragment(), SensorEventListener {
             useCaseSpinner.showDropDown()
         }
 
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
 
         useCaseSpinner.setAdapter(adapter)
         useCaseSpinner.setDropDownBackgroundDrawable(
@@ -80,6 +89,7 @@ class HomeFragment : Fragment(), SensorEventListener {
         gpsData = view.findViewById(R.id.textViewGPS)
         proximityData = view.findViewById(R.id.textViewProximity)
         compassData = view.findViewById(R.id.textViewCompass)
+        NavToolBar =view.findViewById(R.id.toolbar_spinner)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -87,6 +97,13 @@ class HomeFragment : Fragment(), SensorEventListener {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        NavToolBar.setOnClickListener{
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, ViewDataFragment())
+                .addToBackStack(null)
+                .commit()
+        }
 
         return view
     }

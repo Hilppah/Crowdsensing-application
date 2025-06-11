@@ -1,4 +1,6 @@
 package com.crowdsensing
 
-class ViewDataFragment {
+import androidx.fragment.app.Fragment
+
+class ViewDataFragment :Fragment {
 }
