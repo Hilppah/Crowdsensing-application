@@ -62,6 +62,12 @@ class HomeFragment : Fragment(), SensorEventListener {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        val navItems = resources.getStringArray(R.array.spinner_items)
+        NavToolBar = view.findViewById(R.id.toolbar_spinner)
+        val navAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
+        navAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        NavToolBar.adapter = navAdapter
+
         val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
 
         val useCaseItems = resources.getStringArray(R.array.spinner_itemsAction)
@@ -98,11 +104,19 @@ class HomeFragment : Fragment(), SensorEventListener {
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        NavToolBar.setOnClickListener{
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, ViewDataFragment())
-                .addToBackStack(null)
-                .commit()
+        NavToolBar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedItem = parent.getItemAtPosition(position).toString()
+
+                if (selectedItem == "Search Measurements") {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, ViewDataFragment())
+                        .addToBackStack(null)
+                        .commit()
+                }
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
         }
 
         return view

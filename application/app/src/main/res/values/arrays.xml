@@ -3,7 +3,7 @@
 
     <string-array name="spinner_items">
         <item>Measure</item>
-        <item>Search measurements</item>
+        <item>Search Measurements</item>
     </string-array>
 
     <string-array name="spinner_itemsAction">
