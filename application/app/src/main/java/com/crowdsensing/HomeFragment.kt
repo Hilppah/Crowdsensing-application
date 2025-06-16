@@ -1,7 +1,6 @@
 package com.crowdsensing
 
 import android.Manifest
-import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -14,21 +13,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.crowdsensing.ViewDataFragment
 
 
 class HomeFragment : Fragment(), SensorEventListener {
@@ -44,7 +35,7 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var gpsData: TextView
     private lateinit var proximityData: TextView
     private lateinit var compassData: TextView
-    private lateinit var NavToolBar: Spinner
+    private lateinit var navToolBar: Spinner
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
@@ -63,10 +54,10 @@ class HomeFragment : Fragment(), SensorEventListener {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
         val navItems = resources.getStringArray(R.array.spinner_items)
-        NavToolBar = view.findViewById(R.id.toolbar_spinner)
+        navToolBar = view.findViewById(R.id.toolbar_spinner)
         val navAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
         navAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        NavToolBar.adapter = navAdapter
+        navToolBar.adapter = navAdapter
 
         val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
 
@@ -95,7 +86,7 @@ class HomeFragment : Fragment(), SensorEventListener {
         gpsData = view.findViewById(R.id.textViewGPS)
         proximityData = view.findViewById(R.id.textViewProximity)
         compassData = view.findViewById(R.id.textViewCompass)
-        NavToolBar =view.findViewById(R.id.toolbar_spinner)
+        navToolBar =view.findViewById(R.id.toolbar_spinner)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -104,7 +95,7 @@ class HomeFragment : Fragment(), SensorEventListener {
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        NavToolBar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+        navToolBar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedItem = parent.getItemAtPosition(position).toString()
 

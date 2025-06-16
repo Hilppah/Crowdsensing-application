@@ -2,6 +2,7 @@
     <string name="app_name">Crowdsensing</string>
 
     <string-array name="spinner_items">
+        <item>Select...</item>
         <item>Measure</item>
         <item>Search Measurements</item>
     </string-array>
