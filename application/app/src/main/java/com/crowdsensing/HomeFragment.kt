@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Switch
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -36,6 +37,11 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var proximityData: TextView
     private lateinit var compassData: TextView
     private lateinit var navToolBar: Spinner
+    private lateinit var switchGyroscope: Switch
+    private lateinit var switchAccelerometer: Switch
+    private lateinit var switchGPS: Switch
+    private lateinit var switchProximity: Switch
+    private lateinit var switchCompass: Switch
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
@@ -87,6 +93,11 @@ class HomeFragment : Fragment(), SensorEventListener {
         proximityData = view.findViewById(R.id.textViewProximity)
         compassData = view.findViewById(R.id.textViewCompass)
         navToolBar =view.findViewById(R.id.toolbar_spinner)
+        switchGyroscope = view.findViewById(R.id.switchGyro)
+        switchAccelerometer = view.findViewById(R.id.switchAccelerometer)
+        switchGPS = view.findViewById(R.id.switchGPS)
+        switchProximity = view.findViewById(R.id.switchProximity)
+        switchCompass = view.findViewById(R.id.switchCompass)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -117,19 +128,32 @@ class HomeFragment : Fragment(), SensorEventListener {
         if (event == null) return
 
         when (event.sensor.type) {
-            Sensor.TYPE_GYROSCOPE -> gyro(event)
-            Sensor.TYPE_ACCELEROMETER -> {
-                accelerometer(event)
-                gravity[0] = event.values[0]
-                gravity[1] = event.values[1]
-                gravity[2] = event.values[2]
-                hasGravity = true
+            Sensor.TYPE_GYROSCOPE -> {
+                if (switchGyroscope.isChecked) gyro(event) else gyroscopeData.text = ""
             }
-            Sensor.TYPE_PROXIMITY -> proximity(event)
-            Sensor.TYPE_MAGNETIC_FIELD -> updateMagnetometer(event)
-        }
+            Sensor.TYPE_ACCELEROMETER -> {
+                if (switchAccelerometer.isChecked) {
+                    accelerometer(event)
+                    gravity[0] = event.values[0]
+                    gravity[1] = event.values[1]
+                    gravity[2] = event.values[2]
+                    hasGravity = true
+                } else accelerometerData.text = ""
+            }
+            Sensor.TYPE_PROXIMITY -> {
+                if (switchProximity.isChecked) proximity(event) else proximityData.text = ""
+            }
+            Sensor.TYPE_MAGNETIC_FIELD -> {
+                if (switchCompass.isChecked) updateMagnetometer(event)
+            } else ->{
+            compassData.text = ""
+        } }
 
-        updateCompass()
+        if (switchCompass.isChecked) {
+            updateCompass()
+        } else {
+            compassData.text = ""
+        }
     }
 
     private fun gyro(event: SensorEvent) {
@@ -220,7 +244,7 @@ class HomeFragment : Fragment(), SensorEventListener {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }
-        if (checkLocationPermission()) {
+        if (switchGPS.isChecked && checkLocationPermission()) {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
                     location?.let {
@@ -231,6 +255,8 @@ class HomeFragment : Fragment(), SensorEventListener {
                         gpsData.text = "GPS: Location unavailable"
                     }
                 }
+        } else {
+            gpsData.text = ""
         }
     }
 
