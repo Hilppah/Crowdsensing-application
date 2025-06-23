@@ -1,7 +1,6 @@
 package com.crowdsensing
 
 import android.Manifest
-import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -15,13 +14,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.Switch
 import android.widget.TextView
-import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+
 
 class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
@@ -36,6 +36,12 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var gpsData: TextView
     private lateinit var proximityData: TextView
     private lateinit var compassData: TextView
+    private lateinit var navToolBar: Spinner
+    private lateinit var switchGyroscope: Switch
+    private lateinit var switchAccelerometer: Switch
+    private lateinit var switchGPS: Switch
+    private lateinit var switchProximity: Switch
+    private lateinit var switchCompass: Switch
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
@@ -53,11 +59,45 @@ class HomeFragment : Fragment(), SensorEventListener {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        val navItems = resources.getStringArray(R.array.spinner_items)
+        navToolBar = view.findViewById(R.id.toolbar_spinner)
+        val navAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
+        navAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        navToolBar.adapter = navAdapter
+
+        val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
+
+        val useCaseItems = resources.getStringArray(R.array.spinner_itemsAction)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, useCaseItems)
+
+        useCaseSpinner.setAdapter(adapter)
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
+        useCaseSpinner.setOnClickListener {
+            useCaseSpinner.showDropDown()
+        }
+
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
+
+        useCaseSpinner.setAdapter(adapter)
+        useCaseSpinner.setDropDownBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
+        )
+
         gyroscopeData = view.findViewById(R.id.textViewGyro)
         accelerometerData = view.findViewById(R.id.textViewAccelerometer)
         gpsData = view.findViewById(R.id.textViewGPS)
         proximityData = view.findViewById(R.id.textViewProximity)
         compassData = view.findViewById(R.id.textViewCompass)
+        navToolBar =view.findViewById(R.id.toolbar_spinner)
+        switchGyroscope = view.findViewById(R.id.switchGyro)
+        switchAccelerometer = view.findViewById(R.id.switchAccelerometer)
+        switchGPS = view.findViewById(R.id.switchGPS)
+        switchProximity = view.findViewById(R.id.switchProximity)
+        switchCompass = view.findViewById(R.id.switchCompass)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -66,6 +106,21 @@ class HomeFragment : Fragment(), SensorEventListener {
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
+        navToolBar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedItem = parent.getItemAtPosition(position).toString()
+
+                if (selectedItem == "Search Measurements") {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, ViewDataFragment())
+                        .addToBackStack(null)
+                        .commit()
+                }
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
+        }
+
         return view
     }
 
@@ -73,19 +128,32 @@ class HomeFragment : Fragment(), SensorEventListener {
         if (event == null) return
 
         when (event.sensor.type) {
-            Sensor.TYPE_GYROSCOPE -> gyro(event)
-            Sensor.TYPE_ACCELEROMETER -> {
-                accelerometer(event)
-                gravity[0] = event.values[0]
-                gravity[1] = event.values[1]
-                gravity[2] = event.values[2]
-                hasGravity = true
+            Sensor.TYPE_GYROSCOPE -> {
+                if (switchGyroscope.isChecked) gyro(event) else gyroscopeData.text = ""
             }
-            Sensor.TYPE_PROXIMITY -> proximity(event)
-            Sensor.TYPE_MAGNETIC_FIELD -> updateMagnetometer(event)
-        }
+            Sensor.TYPE_ACCELEROMETER -> {
+                if (switchAccelerometer.isChecked) {
+                    accelerometer(event)
+                    gravity[0] = event.values[0]
+                    gravity[1] = event.values[1]
+                    gravity[2] = event.values[2]
+                    hasGravity = true
+                } else accelerometerData.text = ""
+            }
+            Sensor.TYPE_PROXIMITY -> {
+                if (switchProximity.isChecked) proximity(event) else proximityData.text = ""
+            }
+            Sensor.TYPE_MAGNETIC_FIELD -> {
+                if (switchCompass.isChecked) updateMagnetometer(event)
+            } else ->{
+            compassData.text = ""
+        } }
 
-        updateCompass()
+        if (switchCompass.isChecked) {
+            updateCompass()
+        } else {
+            compassData.text = ""
+        }
     }
 
     private fun gyro(event: SensorEvent) {
@@ -176,7 +244,7 @@ class HomeFragment : Fragment(), SensorEventListener {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }
-        if (checkLocationPermission()) {
+        if (switchGPS.isChecked && checkLocationPermission()) {
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
                     location?.let {
@@ -187,6 +255,8 @@ class HomeFragment : Fragment(), SensorEventListener {
                         gpsData.text = "GPS: Location unavailable"
                     }
                 }
+        } else {
+            gpsData.text = ""
         }
     }
 
