@@ -8,6 +8,7 @@
     </string-array>
 
     <string-array name="spinner_itemsAction">
+        <item>Select...</item>
         <item>Walk</item>
         <item>Run</item>
         <item> Turn right </item>
