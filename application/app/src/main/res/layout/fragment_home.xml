@@ -63,7 +63,6 @@
             android:id="@+id/useCase_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/round_buttons"
             android:dropDownHeight="200dp"
             android:focusable="false"
             android:inputType="none"
