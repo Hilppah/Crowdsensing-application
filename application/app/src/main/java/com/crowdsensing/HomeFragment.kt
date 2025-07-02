@@ -170,8 +170,6 @@ class HomeFragment : Fragment(), SensorEventListener {
                 gpsData.text = ""
             }
         }
-
-
         switchProximity.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 switchProximity.thumbTintList =
@@ -188,15 +186,13 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         switchCompass.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                switchCompass.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchCompass.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
             } else {
-                switchCompass.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchCompass.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+                compassData.text = ""
+                compassData.visibility = View.GONE
+                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
             }
         }
 
@@ -229,43 +225,74 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> {
-                if (switchGyroscope.isChecked) gyro(event) else gyroscopeData.text = ""
+                if (switchGyroscope.isChecked) {
+                    gyroscopeData.visibility = View.VISIBLE
+                    val x = event.values[0]
+                    val y = event.values[1]
+                    val z = event.values[2]
+                    gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+                } else {
+                    gyroscopeData.visibility = View.GONE
+                }
             }
 
             Sensor.TYPE_ACCELEROMETER -> {
-                if (switchAccelerometer.isChecked) {
-                    accelerometer(event)
+                if (switchAccelerometer.isChecked || switchCompass.isChecked) {
                     gravity[0] = event.values[0]
                     gravity[1] = event.values[1]
                     gravity[2] = event.values[2]
                     hasGravity = true
-                    if (switchCompass.isChecked) updateCompass()
-                } else accelerometerData.text = ""
+                }
+
+                if (switchAccelerometer.isChecked) {
+                    accelerometer(event)
+                    accelerometerData.visibility = View.VISIBLE
+                } else {
+                    accelerometerData.visibility = View.GONE
+                }
             }
 
             Sensor.TYPE_PROXIMITY -> {
-                if (switchProximity.isChecked) proximity(event) else proximityData.text = ""
+                if (switchProximity.isChecked) {
+                    proximity(event)
+                    proximityData.visibility = View.VISIBLE
+                } else {
+                    proximityData.text = ""
+                    proximityData.visibility = View.GONE
+                }
             }
 
             Sensor.TYPE_MAGNETIC_FIELD -> {
                 if (switchCompass.isChecked) {
                     updateMagnetometer(event)
                     updateCompass()
-                } else compassData.text = ""
+                    compassData.visibility = View.VISIBLE
+                } else {
+                    compassData.text = ""
+                    compassData.visibility = View.GONE
+                }
             }
         }
     }
 
     private fun gyro(event: SensorEvent) {
-        val (x, y, z) = event.values
-        gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+            if (switchGyroscope.isChecked) {
+                gyroscopeData.visibility = View.VISIBLE
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+            } else {
+                gyroscopeData.visibility = View.GONE
+            }
     }
+
 
     private fun accelerometer(event: SensorEvent) {
         accelGravity[0] = alpha * accelGravity[0] + (1 - alpha) * event.values[0]
         accelGravity[1] = alpha * accelGravity[1] + (1 - alpha) * event.values[1]
         accelGravity[2] = alpha * accelGravity[2] + (1 - alpha) * event.values[2]
-
+        hasGravity = true
         accelLin[0] = event.values[0] - accelGravity[0]
         accelLin[1] = event.values[1] - accelGravity[1]
         accelLin[2] = event.values[2] - accelGravity[2]
