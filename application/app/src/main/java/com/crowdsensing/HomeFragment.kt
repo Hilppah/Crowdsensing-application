@@ -61,14 +61,19 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         val navItems = resources.getStringArray(R.array.spinner_items)
         navToolBar = view.findViewById(R.id.toolbar_spinner)
-        val navAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
+        val navAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
         navAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         navToolBar.adapter = navAdapter
 
         val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
 
         val useCaseItems = resources.getStringArray(R.array.spinner_itemsAction)
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, useCaseItems)
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            useCaseItems
+        )
 
         useCaseSpinner.setAdapter(adapter)
         useCaseSpinner.setDropDownBackgroundDrawable(
@@ -92,7 +97,7 @@ class HomeFragment : Fragment(), SensorEventListener {
         gpsData = view.findViewById(R.id.textViewGPS)
         proximityData = view.findViewById(R.id.textViewProximity)
         compassData = view.findViewById(R.id.textViewCompass)
-        navToolBar =view.findViewById(R.id.toolbar_spinner)
+        navToolBar = view.findViewById(R.id.toolbar_spinner)
         switchGyroscope = view.findViewById(R.id.switchGyro)
         switchAccelerometer = view.findViewById(R.id.switchAccelerometer)
         switchGPS = view.findViewById(R.id.switchGPS)
@@ -106,20 +111,111 @@ class HomeFragment : Fragment(), SensorEventListener {
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        navToolBar.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>, view: View?, position: Int, id: Long) {
-                val selectedItem = parent.getItemAtPosition(position).toString()
-
-                if (selectedItem == "Search Measurements") {
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, ViewDataFragment())
-                        .addToBackStack(null)
-                        .commit()
-                }
+        switchGyroscope.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchGyroscope.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchGyroscope.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+            } else {
+                switchGyroscope.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchGyroscope.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
             }
-
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
         }
+
+        switchAccelerometer.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchAccelerometer.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchAccelerometer.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+            } else {
+                switchAccelerometer.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchAccelerometer.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+            }
+        }
+        switchGPS.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchGPS.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchGPS.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+
+                if (checkLocationPermission()) {
+                    fusedLocationClient.lastLocation
+                        .addOnSuccessListener { location: Location? ->
+                            location?.let {
+                                val latitude = it.latitude
+                                val longitude = it.longitude
+                                gpsData.text = "GPS:\nLat: $latitude\nLon: $longitude"
+                            } ?: run {
+                                gpsData.text = "GPS: Location unavailable"
+                            }
+                        }
+                } else {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        LOCATION_PERMISSION_REQUEST_CODE
+                    )
+                }
+            } else {
+                switchGPS.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchGPS.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+                gpsData.text = ""
+            }
+        }
+        switchProximity.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchProximity.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchProximity.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+            } else {
+                switchProximity.thumbTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchProximity.trackTintList =
+                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+            }
+        }
+
+        switchCompass.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+            } else {
+                compassData.text = ""
+                compassData.visibility = View.GONE
+                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+            }
+        }
+
+        navToolBar.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedItem = parent.getItemAtPosition(position).toString()
+
+                    if (selectedItem == "Search Measurements") {
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, ViewDataFragment())
+                            .addToBackStack(null)
+                            .commit()
+                    }
+                }
+
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
+            }
 
         return view
     }
@@ -129,48 +225,80 @@ class HomeFragment : Fragment(), SensorEventListener {
 
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> {
-                if (switchGyroscope.isChecked) gyro(event) else gyroscopeData.text = ""
+                if (switchGyroscope.isChecked) {
+                    gyroscopeData.visibility = View.VISIBLE
+                    val x = event.values[0]
+                    val y = event.values[1]
+                    val z = event.values[2]
+                    gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+                } else {
+                    gyroscopeData.visibility = View.GONE
+                }
             }
+
             Sensor.TYPE_ACCELEROMETER -> {
-                if (switchAccelerometer.isChecked) {
-                    accelerometer(event)
+                if (switchAccelerometer.isChecked || switchCompass.isChecked) {
                     gravity[0] = event.values[0]
                     gravity[1] = event.values[1]
                     gravity[2] = event.values[2]
                     hasGravity = true
-                } else accelerometerData.text = ""
-            }
-            Sensor.TYPE_PROXIMITY -> {
-                if (switchProximity.isChecked) proximity(event) else proximityData.text = ""
-            }
-            Sensor.TYPE_MAGNETIC_FIELD -> {
-                if (switchCompass.isChecked) updateMagnetometer(event)
-            } else ->{
-            compassData.text = ""
-        } }
+                }
 
-        if (switchCompass.isChecked) {
-            updateCompass()
-        } else {
-            compassData.text = ""
+                if (switchAccelerometer.isChecked) {
+                    accelerometer(event)
+                    accelerometerData.visibility = View.VISIBLE
+                } else {
+                    accelerometerData.visibility = View.GONE
+                }
+            }
+
+            Sensor.TYPE_PROXIMITY -> {
+                if (switchProximity.isChecked) {
+                    proximity(event)
+                    proximityData.visibility = View.VISIBLE
+                } else {
+                    proximityData.text = ""
+                    proximityData.visibility = View.GONE
+                }
+            }
+
+            Sensor.TYPE_MAGNETIC_FIELD -> {
+                if (switchCompass.isChecked) {
+                    updateMagnetometer(event)
+                    updateCompass()
+                    compassData.visibility = View.VISIBLE
+                } else {
+                    compassData.text = ""
+                    compassData.visibility = View.GONE
+                }
+            }
         }
     }
 
     private fun gyro(event: SensorEvent) {
-        val (x, y, z) = event.values
-        gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+            if (switchGyroscope.isChecked) {
+                gyroscopeData.visibility = View.VISIBLE
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+            } else {
+                gyroscopeData.visibility = View.GONE
+            }
     }
+
 
     private fun accelerometer(event: SensorEvent) {
         accelGravity[0] = alpha * accelGravity[0] + (1 - alpha) * event.values[0]
         accelGravity[1] = alpha * accelGravity[1] + (1 - alpha) * event.values[1]
         accelGravity[2] = alpha * accelGravity[2] + (1 - alpha) * event.values[2]
-
+        hasGravity = true
         accelLin[0] = event.values[0] - accelGravity[0]
         accelLin[1] = event.values[1] - accelGravity[1]
         accelLin[2] = event.values[2] - accelGravity[2]
 
-        accelerometerData.text = "Accelerometer:\nX: ${accelLin[0]}\nY: ${accelLin[1]}\nZ: ${accelLin[2]}"
+        accelerometerData.text =
+            "Accelerometer:\nX: ${accelLin[0]}\nY: ${accelLin[1]}\nZ: ${accelLin[2]}"
     }
 
     private fun proximity(event: SensorEvent) {
@@ -244,43 +372,30 @@ class HomeFragment : Fragment(), SensorEventListener {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }
-        if (switchGPS.isChecked && checkLocationPermission()) {
-            fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: Location? ->
-                    location?.let {
-                        val latitude = it.latitude
-                        val longitude = it.longitude
-                        gpsData.text = "GPS:\nLat: $latitude\nLon: $longitude"
-                    } ?: run {
-                        gpsData.text = "GPS: Location unavailable"
-                    }
-                }
-        } else {
-            gpsData.text = ""
-        }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<out String>,
+            grantResults: IntArray
+        ) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                onResume()
-            } else {
-                gpsData.text = "GPS: Permission denied"
+            if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    onResume()
+                } else {
+                    gpsData.text = "GPS: Permission denied"
+                }
             }
         }
+
+        override fun onPause() {
+            super.onPause()
+            sensorManager.unregisterListener(this)
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
-    override fun onPause() {
-        super.onPause()
-        sensorManager.unregisterListener(this)
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-}
 
