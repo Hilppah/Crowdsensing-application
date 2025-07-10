@@ -1,106 +1,77 @@
 const mongoose = require("mongoose");
 
+// GPS Schema
 const GPSSchema = new mongoose.Schema({
   phoneModel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phone model",
-    required: true,
+    required: false,
   },
-  latitude: {
-    type: Number,
-    required: true,
-  },
-  longitude: {
-    type: Number,
-    required: true,
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
+// Compass Schema
 const CompassSchema = new mongoose.Schema({
   phoneModel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phone model",
     required: true,
   },
-  compassData: {
-    type: Number,
-    required: true,
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
+  compassData: { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
+// Proximity Schema
 const ProximitySchema = new mongoose.Schema({
   phoneModel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phone model",
     required: true,
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
-  proximityData: {
-    type: Number,
-    required: true,
-  },
+  proximity: { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
+// Accelerometer Schema
 const AccelerometerSchema = new mongoose.Schema({
   phoneModel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phone model",
     required: true,
   },
-  accelerometerX: {
-    type: Number,
-    required: true,
-  },
-  accelerometerY: {
-    type: Number,
-    required: true,
-  },
-  accelerometerZ: {
-    type: Number,
-    required: true,
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
+  accelX: { type: Number, required: true },
+  accelY: { type: Number, required: true },
+  accelZ: { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
+
 const GyroSchema = new mongoose.Schema({
   phoneModel: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Phone model",
     required: true,
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
-  gyroX: {
-    type: Number,
-    required: true,
-  },
-  gyroY: {
-    type: Number,
-    required: true,
-  },
-  gyroZ: {
-    type: Number,
-    required: true,
-  },
+  gyroX: { type: Number, required: true },
+  gyroY: { type: Number, required: true },
+  gyroZ: { type: Number, required: true },
+  timestamp: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("GPSData", GPSSchema);
-module.exports = mongoose.model("CompassData", CompassSchema);
-module.exports = mongoose.model("ProximityData", ProximitySchema);
-module.exports = mongoose.model("GyroData", GyroSchema);
-module.exports = mongoose.model("AccelerometerData", AccelerometerSchema);
+const GPSData = mongoose.model("GPSData", GPSSchema);
+const CompassData = mongoose.model("CompassData", CompassSchema);
+const ProximityData = mongoose.model("ProximityData", ProximitySchema);
+const AccelerometerData = mongoose.model(
+  "AccelerometerData",
+  AccelerometerSchema
+);
+const GyroData = mongoose.model("GyroData", GyroSchema);
+
+module.exports = {
+  GPSData,
+  CompassData,
+  ProximityData,
+  AccelerometerData,
+  GyroData,
+};

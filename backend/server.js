@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-
 const {
   GPSData,
   CompassData,
@@ -12,12 +11,14 @@ const {
 
 const app = express();
 const port = 3000;
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use(express.json());
+
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
@@ -29,6 +30,7 @@ function createSensorRoute(Model, routeName) {
       const saved = await data.save();
       res.status(201).json(saved);
     } catch (err) {
+      console.error("Validation error:", err);
       res.status(400).json({ error: err.message });
     }
   });
@@ -41,5 +43,5 @@ createSensorRoute(AccelerometerData, "accelerometer");
 createSensorRoute(GyroData, "gyroscope");
 
 app.listen(port, () => {
-  console.log("Server started on http://localhost:" + port);
+  console.log(`Server running on http://localhost:${port}`);
 });
