@@ -19,10 +19,6 @@ mongoose
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hello, World!");
-});
-
 function createSensorRoute(Model, routeName) {
   app.post(`/api/sensors/${routeName}`, async (req, res) => {
     try {
