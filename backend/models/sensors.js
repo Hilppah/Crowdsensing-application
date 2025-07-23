@@ -1,71 +1,48 @@
 const mongoose = require("mongoose");
 
-// GPS Schema
-const GPSSchema = new mongoose.Schema({
-  phoneModel: {
+const commonFields = {
+  sessionId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Phone model",
-    required: false,
+    ref: "RecordingSession",
+    required: true,
   },
+  timestamp: { type: Date, default: Date.now },
+};
+
+const GPSSchema = new mongoose.Schema({
+  ...commonFields,
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+  }, { versionKey: false });
 
-// Compass Schema
 const CompassSchema = new mongoose.Schema({
-  phoneModel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Phone model",
-    required: true,
-  },
+  ...commonFields,
   compassData: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+}, { versionKey: false });
 
-// Proximity Schema
 const ProximitySchema = new mongoose.Schema({
-  phoneModel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Phone model",
-    required: true,
-  },
+  ...commonFields,
   proximity: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+}, { versionKey: false });
 
-// Accelerometer Schema
 const AccelerometerSchema = new mongoose.Schema({
-  phoneModel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Phone model",
-    required: true,
-  },
+  ...commonFields,
   accelX: { type: Number, required: true },
   accelY: { type: Number, required: true },
   accelZ: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+}, { versionKey: false });
 
 const GyroSchema = new mongoose.Schema({
-  phoneModel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Phone model",
-    required: true,
-  },
+  ...commonFields,
   gyroX: { type: Number, required: true },
   gyroY: { type: Number, required: true },
   gyroZ: { type: Number, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+}, { versionKey: false });
 
 const GPSData = mongoose.model("GPSData", GPSSchema);
 const CompassData = mongoose.model("CompassData", CompassSchema);
 const ProximityData = mongoose.model("ProximityData", ProximitySchema);
-const AccelerometerData = mongoose.model(
-  "AccelerometerData",
-  AccelerometerSchema
-);
+const AccelerometerData = mongoose.model("AccelerometerData", AccelerometerSchema);
 const GyroData = mongoose.model("GyroData", GyroSchema);
 
 module.exports = {
