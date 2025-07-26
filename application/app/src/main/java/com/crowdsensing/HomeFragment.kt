@@ -1,6 +1,7 @@
 package com.crowdsensing
 
 import android.Manifest
+import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.content.pm.PackageManager
 import android.hardware.Sensor
@@ -30,6 +31,7 @@ class HomeFragment : Fragment(), SensorEventListener {
     private var proximity: Sensor? = null
     private var magnetometer: Sensor? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var wifiManager: android.net.wifi.WifiManager
 
     private lateinit var gyroscopeData: TextView
     private lateinit var accelerometerData: TextView
@@ -42,6 +44,8 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var switchGPS: Switch
     private lateinit var switchProximity: Switch
     private lateinit var switchCompass: Switch
+    private lateinit var wifiData: TextView
+    private lateinit var switchWifi: Switch
 
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
@@ -51,6 +55,14 @@ class HomeFragment : Fragment(), SensorEventListener {
     private var hasGravity = false
     private var hasMagnet = false
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
+    private val wifiScanInterval: Long = 5000
+    private val wifiScanHandler = android.os.Handler()
+    private val wifiScanRunnable = object : Runnable {
+        override fun run() {
+            scanWifiNetworks()
+            wifiScanHandler.postDelayed(this, wifiScanInterval)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -103,6 +115,9 @@ class HomeFragment : Fragment(), SensorEventListener {
         switchGPS = view.findViewById(R.id.switchGPS)
         switchProximity = view.findViewById(R.id.switchProximity)
         switchCompass = view.findViewById(R.id.switchCompass)
+        wifiData = view.findViewById(R.id.textViewWifi)
+        switchWifi = view.findViewById(R.id.switchWifi)
+        wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -122,6 +137,25 @@ class HomeFragment : Fragment(), SensorEventListener {
                     ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
                 switchGyroscope.trackTintList =
                     ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+            }
+        }
+
+        switchWifi.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                switchWifi.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
+                switchWifi.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+
+                if (checkLocationPermission()) {
+                    startWifiScan()
+                } else {
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+                }
+            } else{
+                wifiScanHandler.removeCallbacks(wifiScanRunnable)
+                wifiData.text =""
+                wifiData.visibility = View.GONE
+                switchWifi.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
+                switchWifi.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
             }
         }
 
@@ -286,6 +320,38 @@ class HomeFragment : Fragment(), SensorEventListener {
                 gyroscopeData.visibility = View.GONE
             }
     }
+    private fun startWifiScan() {
+        wifiScanRunnable.run()
+    }
+
+    private fun scanWifiNetworks() {
+        if (!checkLocationPermission()) {
+            wifiData.text = "Wi-Fi Location permission denied"
+            return
+        }
+
+        try {
+            val success = wifiManager.startScan()
+            if (!success) {
+                wifiData.text = "Wi-Fi scan failed"
+                return
+            }
+
+            val results = wifiManager.scanResults
+            if (results.isNotEmpty()) {
+                val sb = StringBuilder()
+                sb.append("Nearby Wi-Fi Networks:\n")
+                results.take(5).forEach { result -> sb.append("${result.SSID} - ${result.level} dBm\n")
+                }
+                wifiData.text = sb.toString()
+                wifiData.visibility = View.VISIBLE
+            } else {
+                wifiData.text = "No Wi-Fi networks found" }
+        } catch (e: SecurityException) {
+            wifiData.text = "Wi-Fi scan failed: permission denied"
+            e.printStackTrace()
+        }
+    }
 
 
     private fun accelerometer(event: SensorEvent) {
@@ -390,10 +456,11 @@ class HomeFragment : Fragment(), SensorEventListener {
             }
         }
 
-        override fun onPause() {
-            super.onPause()
-            sensorManager.unregisterListener(this)
-        }
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+        wifiScanHandler.removeCallbacks(wifiScanRunnable)
+    }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }

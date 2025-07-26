@@ -147,10 +147,20 @@
         android:textColor="#015BA0"
         android:text="Compass" />
 
+    <Switch
+        android:id="@+id/switchWifi"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchCompass"
+        android:text="Wi-Fi Positioning"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#015BA0"/>
+
     <Button
         android:id="@+id/buttonStart"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewCompass"
+        android:layout_below="@+id/textViewWifi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#BE92A2"
@@ -221,4 +231,14 @@
         android:textColor="#015BA0"
         android:layout_centerHorizontal="true"
         android:text="" />
+
+    <TextView
+        android:id="@+id/textViewWifi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textColor="#015BA0"
+        android:text=""
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/textViewCompass"/>
 </RelativeLayout>
