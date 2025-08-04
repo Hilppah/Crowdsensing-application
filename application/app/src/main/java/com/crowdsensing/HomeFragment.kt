@@ -9,11 +9,14 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
@@ -32,6 +35,11 @@ class HomeFragment : Fragment(), SensorEventListener {
     private var magnetometer: Sensor? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var wifiManager: android.net.wifi.WifiManager
+    private lateinit var wifiScanner: WifiScanner
+
+    private var lastSavedTime: Long = 0
+    private var saveIntervalMillis: Long = 500
+    private var isRecording = false
 
     private lateinit var gyroscopeData: TextView
     private lateinit var accelerometerData: TextView
@@ -46,7 +54,11 @@ class HomeFragment : Fragment(), SensorEventListener {
     private lateinit var switchCompass: Switch
     private lateinit var wifiData: TextView
     private lateinit var switchWifi: Switch
+    private lateinit var inputSamplingRate: EditText
+    private lateinit var buttonStop: Button
+    private lateinit var buttonStart: Button
 
+    val sensorMeasurements = mutableListOf<SensorMeasurement>()
     private val accelGravity = FloatArray(3)
     private val accelLin = FloatArray(3)
     private val alpha = 0.8f
@@ -57,12 +69,14 @@ class HomeFragment : Fragment(), SensorEventListener {
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
     private val wifiScanHandler = android.os.Handler()
-    private val wifiScanRunnable = object : Runnable {
-        override fun run() {
-            scanWifiNetworks()
-            wifiScanHandler.postDelayed(this, wifiScanInterval)
-        }
-    }
+
+
+    data class SensorMeasurement(
+        val type: String,
+        val timestamp: Long,
+        val values: FloatArray
+    )
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -86,6 +100,16 @@ class HomeFragment : Fragment(), SensorEventListener {
             android.R.layout.simple_dropdown_item_1line,
             useCaseItems
         )
+
+        wifiScanner = WifiScanner(
+            context = requireContext(),
+            wifiManager = wifiManager,
+            handler = wifiScanHandler,
+            interval = wifiScanInterval
+        ) { result ->
+            wifiData.text = result
+            wifiData.visibility = if (result.isNotBlank()) View.VISIBLE else View.GONE
+        }
 
         useCaseSpinner.setAdapter(adapter)
         useCaseSpinner.setDropDownBackgroundDrawable(
@@ -118,6 +142,9 @@ class HomeFragment : Fragment(), SensorEventListener {
         wifiData = view.findViewById(R.id.textViewWifi)
         switchWifi = view.findViewById(R.id.switchWifi)
         wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+        inputSamplingRate = view.findViewById(R.id.input_sampling_rate)
+        buttonStop =view.findViewById(R.id.buttonStop)
+        buttonStart=view.findViewById(R.id.buttonStart)
 
         sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
@@ -146,12 +173,12 @@ class HomeFragment : Fragment(), SensorEventListener {
                 switchWifi.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
 
                 if (checkLocationPermission()) {
-                    startWifiScan()
+                    wifiScanner.start()()
                 } else {
                     requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
                 }
             } else{
-                wifiScanHandler.removeCallbacks(wifiScanRunnable)
+                wifiScanner.stop()
                 wifiData.text =""
                 wifiData.visibility = View.GONE
                 switchWifi.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
@@ -251,45 +278,75 @@ class HomeFragment : Fragment(), SensorEventListener {
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
             }
 
+        buttonStart.setOnClickListener {
+            val samplingRateText = inputSamplingRate.text.toString()
+            val rate = samplingRateText.toIntOrNull()
+
+            if (rate == null || rate <= 0) {
+                inputSamplingRate.error = "Enter a positive number"
+                return@setOnClickListener
+            }
+
+            val samplingRateHz = rate.coerceAtMost(5) // Max 5 Hz
+            saveIntervalMillis = 1000L / samplingRateHz
+            lastSavedTime = 0
+            isRecording = true
+            sensorMeasurements.clear()
+
+            val samplingPeriodUs = 1_000_000 / samplingRateHz
+            registerSensors(samplingPeriodUs)
+        }
+
+        buttonStop.setOnClickListener {
+            isRecording = false
+            sensorManager.unregisterListener(this)
+            wifiScanner.stop()
+            val fragment = SaveMeasurementFragment.newInstance(sensorMeasurements)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null)
+                .commit()
+        }
+        sensorManager.unregisterListener(this)
+
         return view
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
+        val currentTime = System.currentTimeMillis()
+        val shouldSave = isRecording && (currentTime - lastSavedTime >= saveIntervalMillis)
 
         when (event.sensor.type) {
             Sensor.TYPE_GYROSCOPE -> {
                 if (switchGyroscope.isChecked) {
+                    val output = Sensors.sensorGyroscope(event)
+                    gyroscopeData.text = output
                     gyroscopeData.visibility = View.VISIBLE
-                    val x = event.values[0]
-                    val y = event.values[1]
-                    val z = event.values[2]
-                    gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
-                } else {
-                    gyroscopeData.visibility = View.GONE
-                }
+                    if (shouldSave) saveSensorData("Gyroscope", event)
+                } else gyroscopeData.visibility = View.GONE
             }
 
             Sensor.TYPE_ACCELEROMETER -> {
-                if (switchAccelerometer.isChecked || switchCompass.isChecked) {
-                    gravity[0] = event.values[0]
-                    gravity[1] = event.values[1]
-                    gravity[2] = event.values[2]
-                    hasGravity = true
-                }
-
                 if (switchAccelerometer.isChecked) {
-                    accelerometer(event)
+                    val output = Sensors.sensorAccelerometer(event)
+                    accelerometerData.text = output
                     accelerometerData.visibility = View.VISIBLE
-                } else {
-                    accelerometerData.visibility = View.GONE
+                    if (shouldSave) saveSensorData("Accelerometer", event)
+                } else accelerometerData.visibility = View.GONE
+
+                if (switchCompass.isChecked) {
+                    Sensors.sensorAccelerometer(event)
+                    updateCompass()
                 }
             }
 
             Sensor.TYPE_PROXIMITY -> {
                 if (switchProximity.isChecked) {
-                    proximity(event)
+                    val output = Sensors.sensorProximity(event)
+                    proximityData.text = output
                     proximityData.visibility = View.VISIBLE
+                    if (shouldSave) saveSensorData("Proximity", event)
                 } else {
                     proximityData.text = ""
                     proximityData.visibility = View.GONE
@@ -298,31 +355,25 @@ class HomeFragment : Fragment(), SensorEventListener {
 
             Sensor.TYPE_MAGNETIC_FIELD -> {
                 if (switchCompass.isChecked) {
-                    updateMagnetometer(event)
+                    Sensors.sensorMagnetometer(event)
                     updateCompass()
-                    compassData.visibility = View.VISIBLE
+                    if (shouldSave) saveSensorData("Compass", event)
                 } else {
                     compassData.text = ""
                     compassData.visibility = View.GONE
                 }
             }
         }
+
+        if (shouldSave) lastSavedTime = currentTime
     }
 
-    private fun gyro(event: SensorEvent) {
-            if (switchGyroscope.isChecked) {
-                gyroscopeData.visibility = View.VISIBLE
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-                gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
-            } else {
-                gyroscopeData.visibility = View.GONE
-            }
+    private fun saveSensorData(sensorType: String, event: SensorEvent) {
+        sensorMeasurements.add(
+            SensorMeasurement(sensorType, System.currentTimeMillis(), event.values.clone())
+        )
     }
-    private fun startWifiScan() {
-        wifiScanRunnable.run()
-    }
+
 
     private fun scanWifiNetworks() {
         if (!checkLocationPermission()) {
@@ -353,25 +404,6 @@ class HomeFragment : Fragment(), SensorEventListener {
         }
     }
 
-
-    private fun accelerometer(event: SensorEvent) {
-        accelGravity[0] = alpha * accelGravity[0] + (1 - alpha) * event.values[0]
-        accelGravity[1] = alpha * accelGravity[1] + (1 - alpha) * event.values[1]
-        accelGravity[2] = alpha * accelGravity[2] + (1 - alpha) * event.values[2]
-        hasGravity = true
-        accelLin[0] = event.values[0] - accelGravity[0]
-        accelLin[1] = event.values[1] - accelGravity[1]
-        accelLin[2] = event.values[2] - accelGravity[2]
-
-        accelerometerData.text =
-            "Accelerometer:\nX: ${accelLin[0]}\nY: ${accelLin[1]}\nZ: ${accelLin[2]}"
-    }
-
-    private fun proximity(event: SensorEvent) {
-        val distance = event.values[0]
-        proximityData.text = "Proximity: $distance cm"
-    }
-
     private fun updateCompass() {
         if (!hasGravity || !hasMagnet) return
 
@@ -397,26 +429,6 @@ class HomeFragment : Fragment(), SensorEventListener {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun getCompassDirection(azimuth: Float): String {
-        return when (azimuth) {
-            in 337.5..360.0, in 0.0..22.5 -> "North"
-            in 22.5..67.5 -> "Northeast"
-            in 67.5..112.5 -> "East"
-            in 112.5..157.5 -> "Southeast"
-            in 157.5..202.5 -> "South"
-            in 202.5..247.5 -> "Southwest"
-            in 247.5..292.5 -> "West"
-            in 292.5..337.5 -> "Northwest"
-            else -> "Unknown"
-        }
-    }
-
-    private fun updateMagnetometer(event: SensorEvent) {
-        geomagnetic[0] = event.values[0]
-        geomagnetic[1] = event.values[1]
-        geomagnetic[2] = event.values[2]
-        hasMagnet = true
-    }
 
     override fun onResume() {
         super.onResume()
@@ -455,6 +467,20 @@ class HomeFragment : Fragment(), SensorEventListener {
                 }
             }
         }
+
+    private fun registerSensors(samplingPeriodUs: Int) {
+        gyroscope?.also {
+            sensorManager.registerListener(this, it, samplingPeriodUs)
+        }
+        accelerometer?.also {
+            sensorManager.registerListener(this, it, samplingPeriodUs)
+        }
+        proximity?.also {
+            sensorManager.registerListener(this, it, samplingPeriodUs)
+        }
+        magnetometer?.also {
+            sensorManager.registerListener(this, it, samplingPeriodUs)
+        }}
 
     override fun onPause() {
         super.onPause()
