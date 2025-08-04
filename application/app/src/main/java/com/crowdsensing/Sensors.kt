@@ -3,6 +3,7 @@ package com.crowdsensing
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
+import com.crowdsensing.sensor.SensorResult
 import kotlin.math.roundToInt
 
 object Sensors {
@@ -12,44 +13,56 @@ object Sensors {
     private val accelLinear = FloatArray(3)
     private val gravity = FloatArray(3)
     private val geomagnetic = FloatArray(3)
-
     private var hasGravity = false
     private var hasMagnet = false
 
+    enum class SensorType(val androidSensorType: Int) {
+        GYROSCOPE(Sensor.TYPE_GYROSCOPE),
+        ACCELEROMETER(Sensor.TYPE_ACCELEROMETER),
+        PROXIMITY(Sensor.TYPE_PROXIMITY),
+        MAGNETIC_FIELD(Sensor.TYPE_MAGNETIC_FIELD)
+    }
 
-    fun sensorAccelerometer(event: SensorEvent): String {
+    fun sensorAccelerometer(event: SensorEvent): SensorResult {
         accelGravity[0] = ALPHA * accelGravity[0] + (1 - ALPHA) * event.values[0]
         accelGravity[1] = ALPHA * accelGravity[1] + (1 - ALPHA) * event.values[1]
         accelGravity[2] = ALPHA * accelGravity[2] + (1 - ALPHA) * event.values[2]
         hasGravity = true
+
         accelLin[0] = event.values[0] - accelGravity[0]
         accelLin[1] = event.values[1] - accelGravity[1]
         accelLin[2] = event.values[2] - accelGravity[2]
 
-        return "Accelerometer:\nX: ${accelLinear[0]}\nY: ${accelLinear[1]}\nZ: ${accelLinear[2]}"
+        gravity[0] = accelGravity[0]
+        gravity[1] = accelGravity[1]
+        gravity[2] = accelGravity[2]
+
+        val display = "Accelerometer:\nX: %.2f\nY: %.2f\nZ: %.2f".format(accelLin[0], accelLin[1], accelLin[2])
+        return SensorResult(display, accelLin.copyOf())
     }
 
-    fun sensorGyroscope(event: SensorEvent): String {
-        val x = event.values[0]
-        val y = event.values[1]
-        val z = event.values[2]
-        return "Gyroscope:\nX: $x\nY: $y\nZ: $z"
+    fun sensorGyroscope(event: SensorEvent): SensorResult {
+        val values = event.values
+        val display = "Gyroscope:\nX: %.2f\nY: %.2f\nZ: %.2f".format(values[0], values[1], values[2])
+        return SensorResult(display, values.copyOf())
     }
 
-    fun sensorProximity(event: SensorEvent): String {
+    fun sensorProximity(event: SensorEvent): SensorResult {
         val distance = event.values[0]
-        return "Proximity: $distance cm"
+        return SensorResult("Proximity: %.2f cm".format(distance), floatArrayOf(distance))
     }
 
-    fun sensorMagnetometer(event: SensorEvent) {
+    fun sensorMagnetometer(event: SensorEvent): SensorResult {
         geomagnetic[0] = event.values[0]
         geomagnetic[1] = event.values[1]
         geomagnetic[2] = event.values[2]
         hasMagnet = true
+
+        return SensorResult("Magnetometer:\nX: %.2f\nY: %.2f\nZ: %.2f".format(geomagnetic[0], geomagnetic[1], geomagnetic[2]), geomagnetic.copyOf())
     }
 
-    fun getCompassReading(): String {
-        if (!hasGravity || !hasMagnet) return "Compass: Unavailable"
+    fun getCompassReading(): SensorResult {
+        if (!hasGravity || !hasMagnet) return SensorResult("Compass: Unavailable", floatArrayOf())
 
         val R = FloatArray(9)
         val I = FloatArray(9)
@@ -62,9 +75,9 @@ object Sensors {
             val normalized = (azimuthDeg + 360) % 360
             val direction = getCompassDirection(normalized)
 
-            "Compass: ${normalized.roundToInt()}° ($direction)"
+            SensorResult("Compass: ${normalized.roundToInt()}° ($direction)", floatArrayOf(normalized))
         } else {
-            "Compass: Unable to calculate"
+            SensorResult("Compass: Unable to calculate", floatArrayOf())
         }
     }
 

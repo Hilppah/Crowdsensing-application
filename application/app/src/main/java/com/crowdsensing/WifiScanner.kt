@@ -14,6 +14,7 @@ class WifiScanner(
     private val interval: Long,
     private val updateCallback: (String) -> Unit
 ) {
+    private var isRunning = false
     private val scanRunnable = object : Runnable {
         override fun run() {
             scan()
@@ -22,10 +23,14 @@ class WifiScanner(
     }
 
     fun start() {
+        if (isRunning) return
+        isRunning = true
         scanRunnable.run()
     }
 
     fun stop() {
+        if (!isRunning) return
+        isRunning = false
         handler.removeCallbacks(scanRunnable)
     }
 
@@ -37,6 +42,11 @@ class WifiScanner(
         }
 
         try {
+            if (!wifiManager.isWifiEnabled) {
+                updateCallback("Wi-Fi is disabled")
+                return
+            }
+
             val success = wifiManager.startScan()
             if (!success) {
                 updateCallback("Wi-Fi scan failed")
