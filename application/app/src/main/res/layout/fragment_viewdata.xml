@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     android:background="#d8edff"
     android:orientation="vertical"
-    tools:context=".HomeFragment">
+    tools:context=".HomeFragment"
+    android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -21,7 +22,7 @@
             android:id="@+id/toolbar_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:spinnerMode="dropdown"
             android:textColor="#69a6ff"
             android:entries="@array/spinner_items" />

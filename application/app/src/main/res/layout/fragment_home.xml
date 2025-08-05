@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#d8edff"
-    tools:context=".HomeFragment">
+    tools:context=".HomeFragment"
+    android:fitsSystemWindows="true">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -14,33 +15,31 @@
         android:layout_alignParentTop="true"
         android:background="#96cdff"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        android:padding="15dp">
+        android:theme="?attr/actionBarTheme">
 
         <Spinner
-            android:id="@+id/toolbar_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="25dp"
-            android:layout_gravity="left"
-            android:spinnerMode="dropdown"
-            android:textColor="#032174"
-            android:entries="@array/spinner_items" />
+        android:id="@+id/toolbar_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:spinnerMode="dropdown"
+        android:textColor="#032174"
+        android:entries="@array/spinner_items"/>
     </androidx.appcompat.widget.Toolbar>
 
-            <TextView
-                android:id="@+id/TextView2"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="35dp"
-                android:ems="10"
-                android:text="Choose what you are trying to measure:"
-                android:textAlignment="center"
-                android:textAppearance="@dimen/material_emphasis_medium"
-                android:textColor="#015BA0"
-                android:textSize="18sp" />
+    <TextView
+        android:id="@+id/TextView2"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="35dp"
+        android:ems="10"
+        android:text="Choose what you are trying to measure:"
+        android:textAlignment="center"
+        android:textAppearance="@dimen/material_emphasis_medium"
+        android:textColor="#015BA0"
+        android:textSize="18sp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/useCaseSpinnerLayout"
@@ -60,18 +59,18 @@
         android:textColor="#BE92A2"
         app:boxCornerRadiusBottomEnd="12dp">
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/useCase_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:dropDownHeight="200dp"
-            android:focusable="false"
-            android:inputType="none"
-            android:padding="10dp"
-            android:popupBackground="@drawable/round_dropdown"
-            android:textColor="#BE92A2"
-            android:hint="Select..."
-            android:textColorHint="#BE92A2" />
+    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+        android:id="@+id/useCase_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dropDownHeight="200dp"
+        android:focusable="false"
+        android:inputType="none"
+        android:padding="10dp"
+        android:popupBackground="@drawable/round_dropdown"
+        android:textColor="#BE92A2"
+        android:hint="Select..."
+        android:textColorHint="#BE92A2" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView

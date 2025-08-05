@@ -2,67 +2,47 @@ package com.crowdsensing
 
 import android.Manifest
 import android.content.Context
-import android.content.Context.SENSOR_SERVICE
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.location.Location
+import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Spinner
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.crowdsensing.Sensors.SensorType
+import com.crowdsensing.ViewUtils.setupDropdownMenu
+import com.crowdsensing.ViewUtils.setupNavigationSpinner
+import com.crowdsensing.ViewUtils.updateSwitchColors
+import com.crowdsensing.sensor.SensorController
+import com.crowdsensing.sensor.SensorResult
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 
+class HomeFragment : Fragment() {
 
-class HomeFragment : Fragment(), SensorEventListener {
-    private lateinit var sensorManager: SensorManager
-    private var gyroscope: Sensor? = null
-    private var accelerometer: Sensor? = null
-    private var proximity: Sensor? = null
-    private var magnetometer: Sensor? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var wifiManager: android.net.wifi.WifiManager
+    private lateinit var wifiScanner: WifiScanner
 
-    private lateinit var gyroscopeData: TextView
-    private lateinit var accelerometerData: TextView
-    private lateinit var gpsData: TextView
-    private lateinit var proximityData: TextView
-    private lateinit var compassData: TextView
-    private lateinit var navToolBar: Spinner
-    private lateinit var switchGyroscope: Switch
-    private lateinit var switchAccelerometer: Switch
-    private lateinit var switchGPS: Switch
-    private lateinit var switchProximity: Switch
-    private lateinit var switchCompass: Switch
+    private var isRecording = false
+
+    private lateinit var switchMap: Map<SensorType, Switch>
+    private lateinit var textViewMap: Map<SensorType, TextView>
+    private lateinit var sensorController: SensorController
     private lateinit var wifiData: TextView
     private lateinit var switchWifi: Switch
+    private lateinit var inputSamplingRate: EditText
+    private lateinit var buttonStop: Button
+    private lateinit var buttonStart: Button
 
-    private val accelGravity = FloatArray(3)
-    private val accelLin = FloatArray(3)
-    private val alpha = 0.8f
-    private val gravity = FloatArray(3)
-    private val geomagnetic = FloatArray(3)
-    private var hasGravity = false
-    private var hasMagnet = false
+    private val sensorMeasurements = mutableListOf<SensorResult>()
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
-    private val wifiScanHandler = android.os.Handler()
-    private val wifiScanRunnable = object : Runnable {
-        override fun run() {
-            scanWifiNetworks()
-            wifiScanHandler.postDelayed(this, wifiScanInterval)
-        }
-    }
+    private val wifiScanHandler = Handler()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,125 +51,74 @@ class HomeFragment : Fragment(), SensorEventListener {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
+        val navToolBar: Spinner = view.findViewById(R.id.toolbar_spinner)
         val navItems = resources.getStringArray(R.array.spinner_items)
-        navToolBar = view.findViewById(R.id.toolbar_spinner)
-        val navAdapter =
-            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, navItems)
-        navAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        navToolBar.adapter = navAdapter
+
+        setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
+            when (selectedItem) {
+                "Search Measurements" -> {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, ViewDataFragment())
+                        .commit()
+                }
+            }
+        }
 
         val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
+        setupDropdownMenu(requireContext(), useCaseSpinner, resources.getStringArray(R.array.spinner_itemsAction))
 
-        val useCaseItems = resources.getStringArray(R.array.spinner_itemsAction)
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            useCaseItems
-        )
-
-        useCaseSpinner.setAdapter(adapter)
-        useCaseSpinner.setDropDownBackgroundDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
-        )
-        useCaseSpinner.setOnClickListener {
-            useCaseSpinner.showDropDown()
-        }
-
-        useCaseSpinner.setDropDownBackgroundDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
-        )
-
-        useCaseSpinner.setAdapter(adapter)
-        useCaseSpinner.setDropDownBackgroundDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.dropdown)
-        )
-
-        gyroscopeData = view.findViewById(R.id.textViewGyro)
-        accelerometerData = view.findViewById(R.id.textViewAccelerometer)
-        gpsData = view.findViewById(R.id.textViewGPS)
-        proximityData = view.findViewById(R.id.textViewProximity)
-        compassData = view.findViewById(R.id.textViewCompass)
-        navToolBar = view.findViewById(R.id.toolbar_spinner)
-        switchGyroscope = view.findViewById(R.id.switchGyro)
-        switchAccelerometer = view.findViewById(R.id.switchAccelerometer)
-        switchGPS = view.findViewById(R.id.switchGPS)
-        switchProximity = view.findViewById(R.id.switchProximity)
-        switchCompass = view.findViewById(R.id.switchCompass)
         wifiData = view.findViewById(R.id.textViewWifi)
         switchWifi = view.findViewById(R.id.switchWifi)
-        wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+        inputSamplingRate = view.findViewById(R.id.input_sampling_rate)
+        buttonStart = view.findViewById(R.id.buttonStart)
+        buttonStop = view.findViewById(R.id.buttonStop)
 
-        sensorManager = requireContext().getSystemService(SENSOR_SERVICE) as SensorManager
-        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        switchMap = mapOf(
+            SensorType.GYROSCOPE to view.findViewById(R.id.switchGyro),
+            SensorType.ACCELEROMETER to view.findViewById(R.id.switchAccelerometer),
+            SensorType.PROXIMITY to view.findViewById(R.id.switchProximity),
+            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.switchCompass)
+        )
+
+        textViewMap = mapOf(
+            SensorType.GYROSCOPE to view.findViewById(R.id.textViewGyro),
+            SensorType.ACCELEROMETER to view.findViewById(R.id.textViewAccelerometer),
+            SensorType.PROXIMITY to view.findViewById(R.id.textViewProximity),
+            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.textViewCompass)
+        )
+
+        wifiScanner = WifiScanner(
+            requireContext(),
+            requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager,
+            wifiScanHandler,
+            wifiScanInterval
+        ) { result ->
+            wifiData.text = result
+            wifiData.visibility = if (result.isNotBlank()) View.VISIBLE else View.GONE
+        }
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-        switchGyroscope.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                switchGyroscope.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchGyroscope.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
-            } else {
-                switchGyroscope.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchGyroscope.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+        sensorController = SensorController(requireContext(), object : SensorController.SensorDataListener {
+            override fun onSensorData(sensorType: SensorType, result: SensorResult) {
+                onSensorDataUpdated(sensorType, result)
             }
-        }
+        })
 
+        setupSwitchListeners()
+        setupButtons()
+
+        return view
+    }
+
+    private fun setupSwitchListeners() {
         switchWifi.setOnCheckedChangeListener { _, isChecked ->
+            updateSwitchColors(switchWifi, isChecked, requireContext())
             if (isChecked) {
-                switchWifi.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchWifi.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
-
-                if (checkLocationPermission()) {
-                    startWifiScan()
-                } else {
-                    requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
-                }
-            } else{
-                wifiScanHandler.removeCallbacks(wifiScanRunnable)
-                wifiData.text =""
-                wifiData.visibility = View.GONE
-                switchWifi.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchWifi.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
-            }
-        }
-
-        switchAccelerometer.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                switchAccelerometer.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchAccelerometer.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
-            } else {
-                switchAccelerometer.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchAccelerometer.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
-            }
-        }
-        switchGPS.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                switchGPS.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchGPS.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
-
-                if (checkLocationPermission()) {
-                    fusedLocationClient.lastLocation
-                        .addOnSuccessListener { location: Location? ->
-                            location?.let {
-                                val latitude = it.latitude
-                                val longitude = it.longitude
-                                gpsData.text = "GPS:\nLat: $latitude\nLon: $longitude"
-                            } ?: run {
-                                gpsData.text = "GPS: Location unavailable"
-                            }
-                        }
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED
+                ) {
+                    wifiScanner.start()
                 } else {
                     requestPermissions(
                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -197,272 +126,111 @@ class HomeFragment : Fragment(), SensorEventListener {
                     )
                 }
             } else {
-                switchGPS.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchGPS.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
-                gpsData.text = ""
+                wifiScanner.stop()
+                wifiData.text = ""
+                wifiData.visibility = View.GONE
             }
         }
-        switchProximity.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                switchProximity.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchProximity.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+
+        switchMap.forEach { (sensorType, sw) ->
+            sw.setOnCheckedChangeListener { _, isChecked ->
+                updateSwitchColors(sw, isChecked, requireContext())
+
+                val textView = textViewMap[sensorType]
+                if (!isChecked) {
+                    textView?.text = ""
+                    textView?.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun logSensorDataToLogcat() {
+        val tag = "SensorDataLogger"
+        Log.i(tag, "Type,Timestamp,Values")
+        sensorMeasurements.forEach {
+            val valuesString = it.values.joinToString(";")
+            Log.i(tag, "${it.display},${it.display},$valuesString")
+        }
+        Toast.makeText(requireContext(), "Sensor data logged to Logcat", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun setupButtons() {
+        buttonStart.setOnClickListener {
+            val rate = inputSamplingRate.text.toString().toLongOrNull()
+            if (rate == null || rate <= 0) {
+                inputSamplingRate.error = "Enter a positive number"
+                return@setOnClickListener
+            }
+            startRecording(rate)
+        }
+
+        buttonStop.setOnClickListener {
+            stopRecording()
+        }
+    }
+
+    fun onSensorDataUpdated(sensorType: SensorType, result: SensorResult) {
+        activity?.runOnUiThread {
+            if (isRecording) {
+                sensorMeasurements.add(
+                    SensorResult(sensorType.name, result.values)
+                )
+            }
+
+            val switch = switchMap[sensorType]
+            val textView = textViewMap[sensorType]
+            val isOn = switch?.isChecked == true
+
+            if (isOn) {
+                textView?.text = result.display
+                textView?.visibility = View.VISIBLE
             } else {
-                switchProximity.thumbTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchProximity.trackTintList =
-                    ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
+                textView?.visibility = View.GONE
             }
         }
+    }
 
-        switchCompass.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOn)
-                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOn)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                wifiScanner.start()
             } else {
-                compassData.text = ""
-                compassData.visibility = View.GONE
-                switchCompass.thumbTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorSwitchOff)
-                switchCompass.trackTintList = ContextCompat.getColorStateList(requireContext(), R.color.colorTrackOff)
-            }
-        }
-
-        navToolBar.onItemSelectedListener =
-            object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    val selectedItem = parent.getItemAtPosition(position).toString()
-
-                    if (selectedItem == "Search Measurements") {
-                        parentFragmentManager.beginTransaction()
-                            .replace(R.id.fragmentContainer, ViewDataFragment())
-                            .addToBackStack(null)
-                            .commit()
-                    }
-                }
-
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>) {}
-            }
-
-        return view
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        if (event == null) return
-
-        when (event.sensor.type) {
-            Sensor.TYPE_GYROSCOPE -> {
-                if (switchGyroscope.isChecked) {
-                    gyroscopeData.visibility = View.VISIBLE
-                    val x = event.values[0]
-                    val y = event.values[1]
-                    val z = event.values[2]
-                    gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
-                } else {
-                    gyroscopeData.visibility = View.GONE
-                }
-            }
-
-            Sensor.TYPE_ACCELEROMETER -> {
-                if (switchAccelerometer.isChecked || switchCompass.isChecked) {
-                    gravity[0] = event.values[0]
-                    gravity[1] = event.values[1]
-                    gravity[2] = event.values[2]
-                    hasGravity = true
-                }
-
-                if (switchAccelerometer.isChecked) {
-                    accelerometer(event)
-                    accelerometerData.visibility = View.VISIBLE
-                } else {
-                    accelerometerData.visibility = View.GONE
-                }
-            }
-
-            Sensor.TYPE_PROXIMITY -> {
-                if (switchProximity.isChecked) {
-                    proximity(event)
-                    proximityData.visibility = View.VISIBLE
-                } else {
-                    proximityData.text = ""
-                    proximityData.visibility = View.GONE
-                }
-            }
-
-            Sensor.TYPE_MAGNETIC_FIELD -> {
-                if (switchCompass.isChecked) {
-                    updateMagnetometer(event)
-                    updateCompass()
-                    compassData.visibility = View.VISIBLE
-                } else {
-                    compassData.text = ""
-                    compassData.visibility = View.GONE
-                }
+                wifiData.text = "Wi-Fi: Permission denied"
             }
         }
     }
 
-    private fun gyro(event: SensorEvent) {
-            if (switchGyroscope.isChecked) {
-                gyroscopeData.visibility = View.VISIBLE
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-                gyroscopeData.text = "Gyroscope:\nX: $x\nY: $y\nZ: $z"
-            } else {
-                gyroscopeData.visibility = View.GONE
-            }
-    }
-    private fun startWifiScan() {
-        wifiScanRunnable.run()
-    }
+    private fun startRecording(rate: Long) {
+        isRecording = true
+        sensorMeasurements.clear()
 
-    private fun scanWifiNetworks() {
-        if (!checkLocationPermission()) {
-            wifiData.text = "Wi-Fi Location permission denied"
-            return
-        }
+        val selectedSensors = switchMap.filterValues { it.isChecked }.keys
+        sensorController.startSensors(selectedSensors, rate)
 
-        try {
-            val success = wifiManager.startScan()
-            if (!success) {
-                wifiData.text = "Wi-Fi scan failed"
-                return
-            }
-
-            val results = wifiManager.scanResults
-            if (results.isNotEmpty()) {
-                val sb = StringBuilder()
-                sb.append("Nearby Wi-Fi Networks:\n")
-                results.take(5).forEach { result -> sb.append("${result.SSID} - ${result.level} dBm\n")
-                }
-                wifiData.text = sb.toString()
-                wifiData.visibility = View.VISIBLE
-            } else {
-                wifiData.text = "No Wi-Fi networks found" }
-        } catch (e: SecurityException) {
-            wifiData.text = "Wi-Fi scan failed: permission denied"
-            e.printStackTrace()
+        if (switchWifi.isChecked) {
+            wifiScanner.start()
         }
     }
 
-
-    private fun accelerometer(event: SensorEvent) {
-        accelGravity[0] = alpha * accelGravity[0] + (1 - alpha) * event.values[0]
-        accelGravity[1] = alpha * accelGravity[1] + (1 - alpha) * event.values[1]
-        accelGravity[2] = alpha * accelGravity[2] + (1 - alpha) * event.values[2]
-        hasGravity = true
-        accelLin[0] = event.values[0] - accelGravity[0]
-        accelLin[1] = event.values[1] - accelGravity[1]
-        accelLin[2] = event.values[2] - accelGravity[2]
-
-        accelerometerData.text =
-            "Accelerometer:\nX: ${accelLin[0]}\nY: ${accelLin[1]}\nZ: ${accelLin[2]}"
+    private fun stopRecording() {
+        isRecording = false
+        sensorController.stopSensors()
+        wifiScanner.stop()
+        logSensorDataToLogcat()
+        sensorMeasurements.clear()
     }
-
-    private fun proximity(event: SensorEvent) {
-        val distance = event.values[0]
-        proximityData.text = "Proximity: $distance cm"
-    }
-
-    private fun updateCompass() {
-        if (!hasGravity || !hasMagnet) return
-
-        val R = FloatArray(9)
-        val I = FloatArray(9)
-
-        if (SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)) {
-            val orientation = FloatArray(3)
-            SensorManager.getOrientation(R, orientation)
-            val azimuthRad = orientation[0]
-            val azimuthDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
-            val azimuthNormalized = (azimuthDeg + 360) % 360
-
-            val direction = getCompassDirection(azimuthNormalized)
-            compassData.text = "Compass: ${azimuthNormalized.toInt()}° ($direction)"
-        }
-    }
-
-    private fun checkLocationPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun getCompassDirection(azimuth: Float): String {
-        return when (azimuth) {
-            in 337.5..360.0, in 0.0..22.5 -> "North"
-            in 22.5..67.5 -> "Northeast"
-            in 67.5..112.5 -> "East"
-            in 112.5..157.5 -> "Southeast"
-            in 157.5..202.5 -> "South"
-            in 202.5..247.5 -> "Southwest"
-            in 247.5..292.5 -> "West"
-            in 292.5..337.5 -> "Northwest"
-            else -> "Unknown"
-        }
-    }
-
-    private fun updateMagnetometer(event: SensorEvent) {
-        geomagnetic[0] = event.values[0]
-        geomagnetic[1] = event.values[1]
-        geomagnetic[2] = event.values[2]
-        hasMagnet = true
-    }
-
-    override fun onResume() {
-        super.onResume()
-        gyroscope?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        accelerometer?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        proximity?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        magnetometer?.also {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-        if (!checkLocationPermission()) {
-            requestPermissions(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-        }
-    }
-
-        override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<out String>,
-            grantResults: IntArray
-        ) {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-            if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    onResume()
-                } else {
-                    gpsData.text = "GPS: Permission denied"
-                }
-            }
-        }
 
     override fun onPause() {
         super.onPause()
-        sensorManager.unregisterListener(this)
-        wifiScanHandler.removeCallbacks(wifiScanRunnable)
+        if (isRecording) {
+            stopRecording()
+        } else {
+            wifiScanner.stop()
+        }
     }
-
-        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-    }
-
-
+}
