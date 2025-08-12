@@ -14,6 +14,14 @@ mongoose
 app.use(express.json());
 app.use("/api/sessions", sessionRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the Sensor Data API");
+});
+
+app.post("/", (req, res) => {
+  res.status(200).json({ message: "Session created successfully" });
+});
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

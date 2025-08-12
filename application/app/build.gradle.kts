@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -63,6 +64,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.okhttp)
+    implementation(libs.okhttp.v510)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.play.services.location)
     testImplementation(libs.junit)

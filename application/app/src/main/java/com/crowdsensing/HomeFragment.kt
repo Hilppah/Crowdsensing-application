@@ -39,7 +39,11 @@ class HomeFragment : Fragment() {
     private lateinit var buttonStop: Button
     private lateinit var buttonStart: Button
 
-    private val sensorMeasurements = mutableListOf<SensorResult>()
+    val fragment = NewDataFragment.newInstance(
+        sensorData = "hiiii test"
+    )
+
+    private val sensorMeasurements =mutableListOf<SensorResult>()
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
     private val wifiScanHandler = Handler()
@@ -167,6 +171,21 @@ class HomeFragment : Fragment() {
 
         buttonStop.setOnClickListener {
             stopRecording()
+            val recordedData = sensorMeasurements.joinToString("\n") {
+                "${it.display} -> ${it.values.joinToString(", ")}"
+            }
+
+            val newDataFragment = NewDataFragment().apply {
+                arguments = Bundle().apply {
+                    putString("sensor_data", recordedData)
+                }
+            }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer,
+                    NewDataFragment.newInstance("Measured at: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date())}")
+                )
+                .addToBackStack(null)
+                .commit()
         }
     }
 
