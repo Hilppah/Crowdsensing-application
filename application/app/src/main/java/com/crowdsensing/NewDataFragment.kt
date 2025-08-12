@@ -9,20 +9,12 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import java.io.IOException
 
 class NewDataFragment : Fragment() {
 
-    private val client = OkHttpClient()
-
-    private lateinit var commentEditText : EditText
+    private lateinit var commentEditText: EditText
     private lateinit var sendButton: Button
+    private val apiClient = ApiClient("http://10.0.2.2:3000")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,45 +32,22 @@ class NewDataFragment : Fragment() {
 
         sendButton.setOnClickListener {
             val comment = commentEditText.text.toString()
-            sendDataToServer(sensorData, comment)
+            sendData(sensorData, comment)
         }
 
         return view
     }
 
-    private fun sendDataToServer(sensorData: String, comment: String) {
-        val url = "http://10.0.2.2:3000"
-
-        val requestBody = FormBody.Builder()
-            .add("sensor_data", sensorData)
-            .add("comment", comment)
-            .build()
-
-        val request = Request.Builder()
-            .url(url)
-            .post(requestBody)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                activity?.runOnUiThread {
-
-                    println(e)
-                    Toast.makeText(requireContext(), "Failed to send data", Toast.LENGTH_SHORT).show()
+    private fun sendData(sensorData: String, comment: String) {
+        apiClient.postSensorData(sensorData, comment) { success, message ->
+            activity?.runOnUiThread {
+                if (success) {
+                    Toast.makeText(requireContext(), "Data sent successfully: $message", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Failed: $message", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                activity?.runOnUiThread {
-                    if (response.isSuccessful) {
-                        println(response.body.string()+ response.code.toString())
-                        Toast.makeText(requireContext(), "Data sent successfully", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(requireContext(), "Error: ${response.code}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        })
+        }
     }
 
     companion object {
