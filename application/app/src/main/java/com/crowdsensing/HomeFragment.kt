@@ -39,10 +39,6 @@ class HomeFragment : Fragment() {
     private lateinit var buttonStop: Button
     private lateinit var buttonStart: Button
 
-    val fragment = NewDataFragment.newInstance(
-        sensorData = "hiiii test"
-    )
-
     private val sensorMeasurements =mutableListOf<SensorResult>()
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
@@ -170,24 +166,33 @@ class HomeFragment : Fragment() {
         }
 
         buttonStop.setOnClickListener {
-            stopRecording()
-            val recordedData = sensorMeasurements.joinToString("\n") {
-                "${it.display} -> ${it.values.joinToString(", ")}"
-            }
+            isRecording = false
+            sensorController.stopSensors()
+            wifiScanner.stop()
+            logSensorDataToLogcat()
 
-            val newDataFragment = NewDataFragment().apply {
-                arguments = Bundle().apply {
-                    putString("sensor_data", recordedData)
+            val dateTime = "Measured at: ${
+                java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date())
+            }"
+            val recordedData = buildString {
+                append(sensorMeasurements.joinToString("\n") {
+                    "${it.display} -> ${it.values.joinToString(", ")}"
+                })
+                if (wifiData.text.isNotBlank()) {
+                    append("\nWi-Fi: ${wifiData.text}")
                 }
             }
+
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer,
-                    NewDataFragment.newInstance("Measured at: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date())}")
+                .replace(
+                    R.id.fragmentContainer,
+                    NewDataFragment.newInstance(dateTime, recordedData)
                 )
                 .addToBackStack(null)
                 .commit()
-        }
-    }
+
+            sensorMeasurements.clear()
+        } }
 
     fun onSensorDataUpdated(sensorType: SensorType, result: SensorResult) {
         activity?.runOnUiThread {
@@ -241,7 +246,6 @@ class HomeFragment : Fragment() {
         sensorController.stopSensors()
         wifiScanner.stop()
         logSensorDataToLogcat()
-        sensorMeasurements.clear()
     }
 
     override fun onPause() {
