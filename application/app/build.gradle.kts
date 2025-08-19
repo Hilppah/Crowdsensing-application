@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -68,6 +70,7 @@ dependencies {
     implementation(libs.okhttp.v510)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.play.services.location)
+    implementation ("com.google.code.gson:gson:2.10.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

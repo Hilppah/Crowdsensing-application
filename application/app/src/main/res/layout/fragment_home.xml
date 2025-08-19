@@ -99,7 +99,7 @@
         android:layout_below="@+id/TextView"
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
-        android:hint="Type your desired time "
+        android:hint="Type your rate"
         android:inputType="number"
         android:textAlignment="center"
         android:textColor="#015BA0"

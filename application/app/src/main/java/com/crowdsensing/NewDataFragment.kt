@@ -7,10 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.crowdsensing.ViewUtils.setupNavigationSpinner
 import com.crowdsensing.model.Session
+import com.google.gson.Gson
 
 class NewDataFragment : Fragment() {
 
@@ -51,12 +54,36 @@ class NewDataFragment : Fragment() {
         dateTimeTextView.text = session.startTime.toString()
         displayData.text = session.phoneModel
 
-        Log.i("hopefully during this lifetime i see data", session.toString())
+        Log.i("NewDataFragment", session.toString())
 
-        //TODO: turn session into json with jackson
+        val navToolBar: Spinner = view.findViewById(R.id.toolbar_spinner)
+        val navItems = resources.getStringArray(R.array.spinner_items)
+        setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
+            when (selectedItem) {
+                "Search Measurements" -> {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, ViewDataFragment())
+                        .commit()
+                }
+            }
+        }
+
+        setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
+            when (selectedItem) {
+                "Measure" -> {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, HomeFragment())
+                        .commit()
+                }
+            }
+        }
+
         sendButton.setOnClickListener {
+            val gson = Gson()
+            val sessionJson = gson.toJson(session)
+            Log.d("NewDataFragment", "Session JSON: $sessionJson")
             val comment = commentEditText.text.toString()
-            sendData("put session here as a real json", comment)
+            sendData(sessionJson, comment)
         }
         return view
     }
@@ -72,5 +99,4 @@ class NewDataFragment : Fragment() {
             }
         }
     }
-
 }
