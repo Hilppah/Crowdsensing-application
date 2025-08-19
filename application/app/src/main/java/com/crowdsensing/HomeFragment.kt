@@ -17,11 +17,18 @@ import com.crowdsensing.Sensors.SensorType
 import com.crowdsensing.ViewUtils.setupDropdownMenu
 import com.crowdsensing.ViewUtils.setupNavigationSpinner
 import com.crowdsensing.ViewUtils.updateSwitchColors
+import com.crowdsensing.model.Session
+import com.crowdsensing.model.Session.AccelerometerData
+import com.crowdsensing.model.Session.CompassData
+import com.crowdsensing.model.Session.GPSData
+import com.crowdsensing.model.Session.GyroscopeData
+import com.crowdsensing.model.Session.ProximityData
 import com.crowdsensing.sensor.SensorController
-import com.crowdsensing.sensor.SensorResult
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import java.time.Instant
+import kotlin.String
 
 class HomeFragment : Fragment() {
 
@@ -39,10 +46,16 @@ class HomeFragment : Fragment() {
     private lateinit var buttonStop: Button
     private lateinit var buttonStart: Button
 
-    private val sensorMeasurements =mutableListOf<SensorResult>()
+    private val gpsData = mutableListOf<GPSData>()
+    private val compassData = mutableListOf<CompassData>()
+    private val proximityData = mutableListOf<ProximityData>()
+    private val accelerometerData = mutableListOf<AccelerometerData>()
+    private val gyroscopeData = mutableListOf<GyroscopeData>()
+
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
     private val wifiScanHandler = Handler()
+    private var startingTimeStamp: Instant? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -100,8 +113,8 @@ class HomeFragment : Fragment() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         sensorController = SensorController(requireContext(), object : SensorController.SensorDataListener {
-            override fun onSensorData(sensorType: SensorType, result: SensorResult) {
-                onSensorDataUpdated(sensorType, result)
+            override fun onSensorData(sensorType: SensorType, data: Any) {
+                onSensorDataUpdated(sensorType, data)
             }
         })
 
@@ -145,16 +158,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun logSensorDataToLogcat() {
-        val tag = "SensorDataLogger"
-        Log.i(tag, "Type,Timestamp,Values")
-        sensorMeasurements.forEach {
-            val valuesString = it.values.joinToString(";")
-            Log.i(tag, "${it.display},${it.display},$valuesString")
-        }
-        Toast.makeText(requireContext(), "Sensor data logged to Logcat", Toast.LENGTH_SHORT).show()
-    }
-
     private fun setupButtons() {
         buttonStart.setOnClickListener {
             val rate = inputSamplingRate.text.toString().toLongOrNull()
@@ -169,45 +172,46 @@ class HomeFragment : Fragment() {
             isRecording = false
             sensorController.stopSensors()
             wifiScanner.stop()
-            logSensorDataToLogcat()
 
-            val dateTime = "Measured at: ${
-                java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(java.util.Date())
-            }"
-            val recordedData = buildString {
-                append(sensorMeasurements.joinToString("\n") {
-                    "${it.display} -> ${it.values.joinToString(", ")}"
-                })
-                if (wifiData.text.isNotBlank()) {
-                    append("\nWi-Fi: ${wifiData.text}")
-                }
-            }
+            val sessionRecording = Session(
+                phoneModel = "test",
+                startTime = startingTimeStamp ?: Instant.now(),
+                endTime = Instant.now(),
+                description = "i am test",
+                gps = gpsData,
+                compass = compassData,
+                proximity = proximityData,
+                accelerometer = accelerometerData,
+                gyroscope = gyroscopeData
+            )
+
+            Log.i("recordedSession", sessionRecording.toString())
 
             parentFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragmentContainer,
-                    NewDataFragment.newInstance(dateTime, recordedData)
+                    NewDataFragment.newInstance(sessionRecording)
                 )
                 .addToBackStack(null)
                 .commit()
-
-            sensorMeasurements.clear()
         } }
 
-    fun onSensorDataUpdated(sensorType: SensorType, result: SensorResult) {
+    fun onSensorDataUpdated(sensorType: SensorType, data: Any) {
         activity?.runOnUiThread {
             if (isRecording) {
-                sensorMeasurements.add(
-                    SensorResult(sensorType.name, result.values)
-                )
+                when (data) {
+                    is AccelerometerData -> accelerometerData.add(data)
+                    is GyroscopeData -> gyroscopeData.add(data)
+                    is ProximityData -> proximityData.add(data)
+                    is CompassData -> compassData.add(data)
+                    is GPSData -> gpsData.add(data)
+                }
             }
 
             val switch = switchMap[sensorType]
             val textView = textViewMap[sensorType]
-            val isOn = switch?.isChecked == true
-
-            if (isOn) {
-                textView?.text = result.display
+            if (switch?.isChecked == true) {
+                textView?.text = data.toString()
                 textView?.visibility = View.VISIBLE
             } else {
                 textView?.visibility = View.GONE
@@ -231,7 +235,9 @@ class HomeFragment : Fragment() {
 
     private fun startRecording(rate: Long) {
         isRecording = true
-        sensorMeasurements.clear()
+        clearData()
+
+        startingTimeStamp = Instant.now()
 
         val selectedSensors = switchMap.filterValues { it.isChecked }.keys
         sensorController.startSensors(selectedSensors, rate)
@@ -241,11 +247,18 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun clearData() {
+        accelerometerData.clear()
+        gyroscopeData.clear()
+        proximityData.clear()
+        compassData.clear()
+        gpsData.clear()
+    }
+
     private fun stopRecording() {
         isRecording = false
         sensorController.stopSensors()
         wifiScanner.stop()
-        logSensorDataToLogcat()
     }
 
     override fun onPause() {

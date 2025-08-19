@@ -17,33 +17,41 @@ class SensorController(
     private val sensorListeners = mutableMapOf<SensorType, SensorEventListener>()
 
     interface SensorDataListener {
-        fun onSensorData(sensorType: SensorType, result: SensorResult)
+        fun onSensorData(sensorType: SensorType, data: Any)
     }
 
-    fun startSensors(sensorTypes: Set<SensorType>, samplingRateSeconds: Long) {
-        val samplingRateUs = (samplingRateSeconds * 1_000_000L).toInt()
+    val lastRecordedTime = mutableMapOf<SensorType, Long>()
 
+    fun startSensors(sensorTypes: Set<SensorType>, rate: Long) {
         for (type in sensorTypes) {
             val sensor = sensorManager.getDefaultSensor(type.androidSensorType) ?: continue
-
             val sensorListener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent?) {
                     event ?: return
-                    val result = when (type) {
-                        SensorType.ACCELEROMETER -> Sensors.sensorAccelerometer(event)
-                        SensorType.GYROSCOPE -> Sensors.sensorGyroscope(event)
-                        SensorType.PROXIMITY -> Sensors.sensorProximity(event)
-                        SensorType.MAGNETIC_FIELD -> {
-                            Sensors.sensorMagnetometer(event)
-                            Sensors.getCompassReading()
+
+                    val now = System.currentTimeMillis()
+                    val lastTime = lastRecordedTime[type] ?: 0L
+
+                    if (now - lastTime >= rate * 1000) {
+                        lastRecordedTime[type] = now
+
+                        val data: Any? = when (type) {
+                            SensorType.ACCELEROMETER -> Sensors.sensorAccelerometer(event)
+                            SensorType.GYROSCOPE -> Sensors.sensorGyroscope(event)
+                            SensorType.PROXIMITY -> Sensors.sensorProximity(event)
+                            SensorType.MAGNETIC_FIELD -> {
+                                Sensors.sensorMagnetometer(event)
+                                Sensors.getCompassReading()
+                            }
                         }
+
+                        data?.let { listener.onSensorData(type, it) }
                     }
-                    listener.onSensorData(type, result)
                 }
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
 
-            sensorManager.registerListener(sensorListener, sensor, samplingRateUs)
+            sensorManager.registerListener(sensorListener, sensor, 10000000)
             sensorListeners[type] = sensorListener
         }
     }
