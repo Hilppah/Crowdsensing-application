@@ -9,12 +9,14 @@ data class Session(
     val phoneModel: String,
     val startTime: Instant,
     val endTime: Instant,
+    val frequency: Long? = null,
     val description: String? = null,
     val gps: List<GPSData> = emptyList(),
     val compass: List<CompassData> = emptyList(),
     val proximity: List<ProximityData> = emptyList(),
     val accelerometer: List<AccelerometerData> = emptyList(),
-    val gyroscope: List<GyroscopeData> = emptyList()
+    val gyroscope: List<GyroscopeData> = emptyList(),
+    val chosenMeasurement: String? = null
 ) : Parcelable {
 
     @Parcelize

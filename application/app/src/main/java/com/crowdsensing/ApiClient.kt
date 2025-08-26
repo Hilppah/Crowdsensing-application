@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import android.R
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.FormBody
@@ -15,11 +16,21 @@ class ApiClient(private val baseUrl: String) {
     fun postSensorData(
         sensorData: String,
         comment: String,
+        phoneModel: String,
+        chosenMeasurement: String,
+        startTime: String,
+        endTime: String,
+        frequency: String,
         callback: (success: Boolean, message: String) -> Unit
     ) {
         val requestBody = FormBody.Builder()
+            .add("phone_model", phoneModel)
+            .add("chosen_measurement", chosenMeasurement)
             .add("sensor_data", sensorData)
+            .add("start_time", startTime)
+            .add("end_time", endTime)
             .add("comment", comment)
+            .add("frequency", frequency)
             .build()
 
         val request = Request.Builder()

@@ -30,9 +30,7 @@ class NewDataFragment : Fragment() {
 
         fun newInstance(session: Session): NewDataFragment {
             return NewDataFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelable(ARG_SESSION, session)
-                }
+                arguments = Bundle().apply {}
             }
         }
     }
@@ -52,7 +50,9 @@ class NewDataFragment : Fragment() {
         sendButton = view.findViewById(R.id.button)
 
         dateTimeTextView.text = session.startTime.toString()
-        displayData.text = session.phoneModel
+        displayData.text = """Model: ${session.phoneModel} Measurement: ${session.chosenMeasurement} Frequency: ${session.frequency} Hz
+""".trimIndent()
+
 
         Log.i("NewDataFragment", session.toString())
 

@@ -29,6 +29,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import java.time.Instant
 import kotlin.String
+import android.os.Build
 
 class HomeFragment : Fragment() {
 
@@ -45,6 +46,7 @@ class HomeFragment : Fragment() {
     private lateinit var inputSamplingRate: EditText
     private lateinit var buttonStop: Button
     private lateinit var buttonStart: Button
+    private lateinit var useCaseSpinner: MaterialAutoCompleteTextView
 
     private val gpsData = mutableListOf<GPSData>()
     private val compassData = mutableListOf<CompassData>()
@@ -173,11 +175,16 @@ class HomeFragment : Fragment() {
             sensorController.stopSensors()
             wifiScanner.stop()
 
+            val deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
+            val selectedUseCase = useCaseSpinner.text.toString()
+
             val sessionRecording = Session(
-                phoneModel = "test",
+                phoneModel = deviceModel,
                 startTime = startingTimeStamp ?: Instant.now(),
                 endTime = Instant.now(),
                 description = "i am test",
+                chosenMeasurement = selectedUseCase,
+                frequency = inputSamplingRate.text.toString().toLongOrNull() ?:0L,
                 gps = gpsData,
                 compass = compassData,
                 proximity = proximityData,
