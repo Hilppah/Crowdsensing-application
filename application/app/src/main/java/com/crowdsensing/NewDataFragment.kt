@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,7 +14,15 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.crowdsensing.ViewUtils.setupNavigationSpinner
 import com.crowdsensing.model.Session
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import java.lang.reflect.Type
+import java.time.Instant
 
 class NewDataFragment : Fragment() {
 
@@ -30,7 +39,8 @@ class NewDataFragment : Fragment() {
 
         fun newInstance(session: Session): NewDataFragment {
             return NewDataFragment().apply {
-                arguments = Bundle().apply {}
+                arguments = Bundle().apply { putParcelable(ARG_SESSION, session)
+                }
             }
         }
     }
@@ -41,8 +51,12 @@ class NewDataFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_newdata, container, false)
 
-        session = requireArguments().getParcelable(ARG_SESSION, Session::class.java)
-            ?: throw IllegalStateException("Session must be provided to NewDataFragment")
+        session = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requireArguments().getParcelable(ARG_SESSION, Session::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            requireArguments().getParcelable(ARG_SESSION)
+        } ?: throw IllegalStateException("Session must be provided to NewDataFragment")
 
         dateTimeTextView = view.findViewById(R.id.textView)
         displayData = view.findViewById(R.id.viewMeasuredData)
@@ -50,8 +64,7 @@ class NewDataFragment : Fragment() {
         sendButton = view.findViewById(R.id.button)
 
         dateTimeTextView.text = session.startTime.toString()
-        displayData.text = """Model: ${session.phoneModel} Measurement: ${session.chosenMeasurement} Frequency: ${session.frequency} Hz
-""".trimIndent()
+        displayData.text = """Model: ${session.phoneModel} Measurement: ${session.chosenMeasurement} Frequency: ${session.frequency} HzGPS points: ${session.gps.size}Compass points: ${session.compass.size}Proximity points: ${session.proximity.size} Accelerometer points: ${session.accelerometer.size}Gyroscope points: ${session.gyroscope.size}""".trimIndent()
 
 
         Log.i("NewDataFragment", session.toString())
@@ -79,17 +92,36 @@ class NewDataFragment : Fragment() {
         }
 
         sendButton.setOnClickListener {
-            val gson = Gson()
-            val sessionJson = gson.toJson(session)
-            Log.d("NewDataFragment", "Session JSON: $sessionJson")
             val comment = commentEditText.text.toString()
-            sendData(sessionJson, comment)
+            sendData(session, comment)
         }
+
         return view
     }
 
-    private fun sendData(sensorData: String, comment: String) {
-        apiClient.postSensorData(sensorData, comment) { success, message ->
+
+    class InstantSerializer : JsonSerializer<Instant> {
+        override fun serialize(
+            src: Instant?,
+            typeOfSrc: Type?,
+            context: JsonSerializationContext?
+        ): JsonElement {
+            return JsonPrimitive(src?.toEpochMilli())
+        }
+    }
+
+    class InstantDeserializer : JsonDeserializer<Instant> {
+        override fun deserialize(
+            json: JsonElement?,
+            typeOfT: Type?,
+            context: JsonDeserializationContext?
+        ): Instant {
+            return Instant.ofEpochMilli(json!!.asLong)
+        }
+    }
+
+    private fun sendData(session: Session, comment: String) {
+        apiClient.postSensorData(session, comment) { success, message ->
             activity?.runOnUiThread {
                 if (success) {
                     Toast.makeText(requireContext(), "Data sent successfully: $message", Toast.LENGTH_SHORT).show()
@@ -98,5 +130,4 @@ class NewDataFragment : Fragment() {
                 }
             }
         }
-    }
-}
+    }}

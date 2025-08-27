@@ -1,37 +1,25 @@
 package com.crowdsensing
 
-import android.R
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import android.hardware.Sensor
+import com.crowdsensing.model.Session
+import com.google.gson.Gson
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 class ApiClient(private val baseUrl: String) {
-
     private val client = OkHttpClient()
 
     fun postSensorData(
-        sensorData: String,
+        sensorData: Session,
         comment: String,
-        phoneModel: String,
-        chosenMeasurement: String,
-        startTime: String,
-        endTime: String,
-        frequency: String,
         callback: (success: Boolean, message: String) -> Unit
     ) {
-        val requestBody = FormBody.Builder()
-            .add("phone_model", phoneModel)
-            .add("chosen_measurement", chosenMeasurement)
-            .add("sensor_data", sensorData)
-            .add("start_time", startTime)
-            .add("end_time", endTime)
-            .add("comment", comment)
-            .add("frequency", frequency)
-            .build()
+        val gson = Gson()
+        val json = gson.toJson(sensorData)
+
+        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
 
         val request = Request.Builder()
             .url(baseUrl)

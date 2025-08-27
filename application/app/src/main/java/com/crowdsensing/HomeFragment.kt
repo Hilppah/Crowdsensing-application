@@ -184,7 +184,7 @@ class HomeFragment : Fragment() {
                 endTime = Instant.now(),
                 description = "i am test",
                 chosenMeasurement = selectedUseCase,
-                frequency = inputSamplingRate.text.toString().toLongOrNull() ?:0L,
+                frequency = inputSamplingRate.text.toString().toLongOrNull() ?: 0L,
                 gps = gpsData,
                 compass = compassData,
                 proximity = proximityData,

@@ -39,9 +39,7 @@ class SensorController(
                             SensorType.ACCELEROMETER -> Sensors.sensorAccelerometer(event)
                             SensorType.GYROSCOPE -> Sensors.sensorGyroscope(event)
                             SensorType.PROXIMITY -> Sensors.sensorProximity(event)
-                            SensorType.MAGNETIC_FIELD -> {
-                                Sensors.sensorMagnetometer(event)
-                                Sensors.getCompassReading()
+                            SensorType.MAGNETIC_FIELD -> { Sensors.getCompassReading()
                             }
                         }
 
