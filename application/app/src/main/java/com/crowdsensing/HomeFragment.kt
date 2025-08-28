@@ -79,7 +79,7 @@ class HomeFragment : Fragment() {
             }
         }
 
-        val useCaseSpinner = view.findViewById<MaterialAutoCompleteTextView>(R.id.useCase_spinner)
+        useCaseSpinner = view.findViewById(R.id.useCase_spinner)
         setupDropdownMenu(requireContext(), useCaseSpinner, resources.getStringArray(R.array.spinner_itemsAction))
 
         wifiData = view.findViewById(R.id.textViewWifi)
