@@ -14,13 +14,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.crowdsensing.ViewUtils.setupNavigationSpinner
 import com.crowdsensing.model.Session
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.lang.reflect.Type
 import java.time.Instant
 
@@ -33,6 +30,10 @@ class NewDataFragment : Fragment() {
     private lateinit var session: Session
 
     private val apiClient = ApiClient("http://10.0.2.2:3000")
+    val mapper = jacksonObjectMapper()
+        .registerKotlinModule()
+        .registerModule(JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 
     companion object {
         private const val ARG_SESSION = "arg_session"
@@ -51,12 +52,12 @@ class NewDataFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_newdata, container, false)
 
-        session = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        session =
             requireArguments().getParcelable(ARG_SESSION, Session::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            requireArguments().getParcelable(ARG_SESSION)
-        } ?: throw IllegalStateException("Session must be provided to NewDataFragment")
+                ?: throw IllegalStateException("Session must be provided to NewDataFragment")
+
+       val sessionJson = mapper.writeValueAsString(session)
+        println(sessionJson)
 
         dateTimeTextView = view.findViewById(R.id.textView)
         displayData = view.findViewById(R.id.viewMeasuredData)
@@ -64,7 +65,16 @@ class NewDataFragment : Fragment() {
         sendButton = view.findViewById(R.id.button)
 
         dateTimeTextView.text = session.startTime.toString()
-        displayData.text = """Model: ${session.phoneModel} Measurement: ${session.chosenMeasurement} Frequency: ${session.frequency} HzGPS points: ${session.gps.size}Compass points: ${session.compass.size}Proximity points: ${session.proximity.size} Accelerometer points: ${session.accelerometer.size}Gyroscope points: ${session.gyroscope.size}""".trimIndent()
+        displayData.text = """
+            Model: ${session.phoneModel} 
+            Measurement: ${session.chosenMeasurement}
+            Frequency: ${session.frequency}
+             HzGPS points: ${session.gps.size}
+             Compass points: ${session.compass.size}
+             Proximity points: ${session.proximity.size}
+             Accelerometer points: ${session.accelerometer.size}
+             Gyroscope points: ${session.gyroscope.size}
+             """.trimIndent()
 
 
         Log.i("NewDataFragment", session.toString())
@@ -93,34 +103,13 @@ class NewDataFragment : Fragment() {
 
         sendButton.setOnClickListener {
             val comment = commentEditText.text.toString()
-            sendData(session, comment)
+            sendData(sessionJson, comment)
         }
 
         return view
     }
 
-
-    class InstantSerializer : JsonSerializer<Instant> {
-        override fun serialize(
-            src: Instant?,
-            typeOfSrc: Type?,
-            context: JsonSerializationContext?
-        ): JsonElement {
-            return JsonPrimitive(src?.toEpochMilli())
-        }
-    }
-
-    class InstantDeserializer : JsonDeserializer<Instant> {
-        override fun deserialize(
-            json: JsonElement?,
-            typeOfT: Type?,
-            context: JsonDeserializationContext?
-        ): Instant {
-            return Instant.ofEpochMilli(json!!.asLong)
-        }
-    }
-
-    private fun sendData(session: Session, comment: String) {
+    private fun sendData(session: String, comment: String) {
         apiClient.postSensorData(session, comment) { success, message ->
             activity?.runOnUiThread {
                 if (success) {

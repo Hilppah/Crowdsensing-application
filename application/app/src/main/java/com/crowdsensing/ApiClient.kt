@@ -1,8 +1,5 @@
 package com.crowdsensing
 
-import android.hardware.Sensor
-import com.crowdsensing.model.Session
-import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -12,18 +9,17 @@ class ApiClient(private val baseUrl: String) {
     private val client = OkHttpClient()
 
     fun postSensorData(
-        sensorData: Session,
+        sensorJsonPayload: String,
         comment: String,
         callback: (success: Boolean, message: String) -> Unit
     ) {
-        val gson = Gson()
-        val json = gson.toJson(sensorData)
 
-        val requestBody = json.toRequestBody("application/json; charset=utf-8".toMediaType())
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val body = sensorJsonPayload.toRequestBody(mediaType)
 
         val request = Request.Builder()
             .url(baseUrl)
-            .post(requestBody)
+            .post(body)
             .build()
 
         client.newCall(request).enqueue(object : Callback {

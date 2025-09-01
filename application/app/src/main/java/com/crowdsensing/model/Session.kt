@@ -1,9 +1,11 @@
 package com.crowdsensing.model
 
 import android.os.Parcelable
+import com.fasterxml.jackson.annotation.JsonInclude
 import kotlinx.parcelize.Parcelize
 import java.time.Instant
 
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Parcelize
 data class Session(
     val phoneModel: String,
