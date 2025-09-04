@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -68,6 +70,8 @@ dependencies {
     implementation(libs.okhttp.v510)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.play.services.location)
+    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin:2.20.0")
+    implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

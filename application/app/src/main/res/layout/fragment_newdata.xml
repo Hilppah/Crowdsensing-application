@@ -39,8 +39,8 @@
         android:layout_marginBottom="82dp"
         android:layout_centerHorizontal="true"
         android:text="send data"
+        android:textColor="#BE92A2"
         android:background="@drawable/round_buttons"/>
-<!--        android:textColor="#be92a2"-->
 
 
     <TextView
@@ -77,7 +77,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical"
+            android:gravity="center" >
 
             <TextView
                 android:id="@+id/viewMeasuredData"
