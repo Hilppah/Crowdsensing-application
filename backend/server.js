@@ -6,6 +6,8 @@ const sessionRoutes = require("./routes/sessions");
 const app = express();
 const port = 3000;
 
+app.use(express.json());
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB Atlas"))
@@ -14,12 +16,9 @@ mongoose
 app.use(express.json());
 app.use("/api/sessions", sessionRoutes);
 
+
 app.get("/", (req, res) => {
   res.send("Welcome to the Sensor Data API");
-});
-
-app.post("/", (req, res) => {
-  res.status(200).json({ message: "Session created successfully" });
 });
 
 app.listen(port, () => {

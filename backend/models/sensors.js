@@ -13,16 +13,22 @@ const GPSSchema = new mongoose.Schema({
   ...commonFields,
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },
+   timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
   }, { versionKey: false });
 
 const CompassSchema = new mongoose.Schema({
   ...commonFields,
   compassData: { type: Number, required: true },
+   timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
 }, { versionKey: false });
 
 const ProximitySchema = new mongoose.Schema({
   ...commonFields,
   proximity: { type: Number, required: true },
+   timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
 }, { versionKey: false });
 
 const AccelerometerSchema = new mongoose.Schema({
@@ -30,6 +36,8 @@ const AccelerometerSchema = new mongoose.Schema({
   accelX: { type: Number, required: true },
   accelY: { type: Number, required: true },
   accelZ: { type: Number, required: true },
+   timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
 }, { versionKey: false });
 
 const GyroSchema = new mongoose.Schema({
@@ -37,6 +45,8 @@ const GyroSchema = new mongoose.Schema({
   gyroX: { type: Number, required: true },
   gyroY: { type: Number, required: true },
   gyroZ: { type: Number, required: true },
+   timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
 }, { versionKey: false });
 
 const GPSData = mongoose.model("GPSData", GPSSchema);

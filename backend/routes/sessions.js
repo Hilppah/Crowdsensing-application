@@ -12,15 +12,36 @@ const {
 
 router.post("/", async (req, res) => {
   try {
-    const { phoneModel, startTime, endTime, description, gps, compass, proximity, accelerometer, gyroscope } = req.body;
+    const {
+      phoneModel,
+      startTime,
+      endTime,
+      description,
+      frequency,
+      chosenMeasurement,
+      stability,
+      gps,
+      compass,
+      proximity,
+      accelerometer,
+      gyroscope
+    } = req.body;
 
-    const session = new RecordingSession({ phoneModel, startTime, endTime, description });
+    const session = new RecordingSession({
+      phoneModel,
+      startTime,
+      endTime,
+      description,
+      frequency,
+      chosenMeasurement,
+      stability
+    });
     await session.save();
 
     const saveSensorData = async (Model, dataArray) => {
       if (Array.isArray(dataArray)) {
         for (const data of dataArray) {
-          const doc = new Model({ ...data, phoneModel, sessionId: session._id });
+          const doc = new Model({ ...data, sessionId: session._id });
           await doc.save();
         }
       }
@@ -38,6 +59,7 @@ router.post("/", async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
+
 
 router.get("/", async (req, res) => {
   try {

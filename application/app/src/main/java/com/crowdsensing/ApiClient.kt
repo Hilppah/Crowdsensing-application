@@ -18,7 +18,7 @@ class ApiClient(private val baseUrl: String) {
         val body = sensorJsonPayload.toRequestBody(mediaType)
 
         val request = Request.Builder()
-            .url(baseUrl)
+            .url("$baseUrl/api/sessions")
             .post(body)
             .build()
 
