@@ -12,25 +12,37 @@ const {
 
 router.post("/", async (req, res) => {
   try {
-    const { phoneModel, startTime, endTime, description, gps, compass, proximity, accelerometer, gyroscope } = req.body;
+    const {
+      phoneModel,
+      startTime,
+      endTime,
+      description,
+      frequency,
+      chosenMeasurement,
+      stability,
+      gps,
+      compass,
+      proximity,
+      accelerometer,
+      gyroscope,
+    } = req.body;
 
-    const session = new RecordingSession({ phoneModel, startTime, endTime, description });
+    const session = new RecordingSession({
+      phoneModel,
+      startTime,
+      endTime,
+      description,
+      frequency,
+      chosenMeasurement,
+      stability,
+      gps,
+      compass,
+      proximity,
+      accelerometer,
+      gyroscope,
+    });
+
     await session.save();
-
-    const saveSensorData = async (Model, dataArray) => {
-      if (Array.isArray(dataArray)) {
-        for (const data of dataArray) {
-          const doc = new Model({ ...data, phoneModel, sessionId: session._id });
-          await doc.save();
-        }
-      }
-    };
-
-    await saveSensorData(GPSData, gps);
-    await saveSensorData(CompassData, compass);
-    await saveSensorData(ProximityData, proximity);
-    await saveSensorData(AccelerometerData, accelerometer);
-    await saveSensorData(GyroData, gyroscope);
 
     res.status(201).json({ sessionId: session._id });
   } catch (err) {
@@ -49,32 +61,13 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const sessionId = req.params.id;
-
   try {
-    const session = await RecordingSession.findById(sessionId);
+    const session = await RecordingSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    const [gps, compass, proximity, accelerometer, gyroscope] = await Promise.all([
-      GPSData.find({ sessionId }),
-      CompassData.find({ sessionId }),
-      ProximityData.find({ sessionId }),
-      AccelerometerData.find({ sessionId }),
-      GyroData.find({ sessionId }),
-    ]);
-
-    res.json({
-      session,
-      sensorData: {
-        gps,
-        compass,
-        proximity,
-        accelerometer,
-        gyroscope,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.json({ session });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

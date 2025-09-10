@@ -104,6 +104,11 @@ class NewDataFragment : Fragment() {
         sendButton.setOnClickListener {
             val comment = commentEditText.text.toString()
             sendData(sessionJson, comment)
+            parentFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer, HomeFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         return view
