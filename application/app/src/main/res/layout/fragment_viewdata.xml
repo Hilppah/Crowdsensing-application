@@ -41,15 +41,14 @@
         android:inputType="text"
         android:text="Search..." />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="325dp"
-        android:layout_height="414dp"
-        android:layout_below="@+id/editTextText2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="27dp"
-        android:textColor="#69a6ff"
-        android:text="Info of the searched text" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_below="@id/editTextText2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:padding="12dp"
+        />
 
 
 </RelativeLayout>

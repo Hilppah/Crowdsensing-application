@@ -89,7 +89,7 @@
     </ScrollView>
 
     <EditText
-        android:id="@+id/editTextText"
+        android:id="@+id/editTextTextComment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textView"

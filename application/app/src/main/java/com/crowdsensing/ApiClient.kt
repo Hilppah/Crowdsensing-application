@@ -10,10 +10,7 @@ class ApiClient(private val baseUrl: String) {
 
     fun postSensorData(
         sensorJsonPayload: String,
-        comment: String,
-        callback: (success: Boolean, message: String) -> Unit
-    ) {
-
+        callback: (success: Boolean, message: String) -> Unit) {
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val body = sensorJsonPayload.toRequestBody(mediaType)
 
@@ -26,7 +23,6 @@ class ApiClient(private val baseUrl: String) {
             override fun onFailure(call: Call, e: IOException) {
                 callback(false, e.message ?: "Unknown error")
             }
-
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (it.isSuccessful) {

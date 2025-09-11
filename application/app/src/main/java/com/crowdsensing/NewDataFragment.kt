@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import ViewDataFragment
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -61,7 +62,7 @@ class NewDataFragment : Fragment() {
 
         dateTimeTextView = view.findViewById(R.id.textView)
         displayData = view.findViewById(R.id.viewMeasuredData)
-        commentEditText = view.findViewById(R.id.editTextText)
+        commentEditText = view.findViewById(R.id.editTextTextComment)
         sendButton = view.findViewById(R.id.button)
 
         dateTimeTextView.text = session.startTime.toString()
@@ -103,19 +104,21 @@ class NewDataFragment : Fragment() {
 
         sendButton.setOnClickListener {
             val comment = commentEditText.text.toString()
-            sendData(sessionJson, comment)
+            session = session.copy(description = comment)
+            val updatedSessionJson = mapper.writeValueAsString(session)
+            sendData(updatedSessionJson)
             parentFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragmentContainer, HomeFragment())
+                .replace(R.id.fragmentContainer, HomeFragment())
                 .addToBackStack(null)
                 .commit()
         }
 
+
         return view
     }
 
-    private fun sendData(session: String, comment: String) {
-        apiClient.postSensorData(session, comment) { success, message ->
+    private fun sendData(sessionJson: String) {
+        apiClient.postSensorData(sessionJson) { success, message ->
             activity?.runOnUiThread {
                 if (success) {
                     Toast.makeText(requireContext(), "Data sent successfully: $message", Toast.LENGTH_SHORT).show()
