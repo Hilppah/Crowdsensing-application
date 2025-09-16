@@ -178,5 +178,26 @@ class ViewDataFragment : Fragment() {
             .setMessage(message)
             .setPositiveButton("Close", null)
             .show()
+
+        val builder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        builder.setTitle("Session Details")
+        builder.setMessage(message)
+        builder.setPositiveButton("Close", null)
+        builder.setNegativeButton("Delete") { _, _ ->
+            apiClient.deleteSession(session.id ?: "") { success, msg ->
+                activity?.runOnUiThread {
+                    if (success) {
+                        Toast.makeText(requireContext(), "Session deleted", Toast.LENGTH_SHORT).show()
+                        // Remove from displayed lists and update RecyclerView
+                        allSessions = allSessions.filter { it.id != session.id }
+                        displayedSessions = displayedSessions.filter { it.id != session.id }
+                        updateRecyclerView(displayedSessions)
+                    } else {
+                        Toast.makeText(requireContext(), "Delete failed: $msg", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        builder.show()
     }
 }
