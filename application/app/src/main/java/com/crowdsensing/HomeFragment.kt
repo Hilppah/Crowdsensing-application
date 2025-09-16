@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import ViewDataFragment
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -71,7 +72,7 @@ class HomeFragment : Fragment() {
 
         setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
             when (selectedItem) {
-                "Search Measurements" -> {
+                "View Measurements" -> {
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, ViewDataFragment())
                         .commit()
@@ -182,7 +183,7 @@ class HomeFragment : Fragment() {
                 phoneModel = deviceModel,
                 startTime = startingTimeStamp ?: Instant.now(),
                 endTime = Instant.now(),
-                description = "i am test",
+                description = "",
                 chosenMeasurement = selectedUseCase,
                 frequency = inputSamplingRate.text.toString().toLongOrNull() ?: 0L,
                 gps = gpsData,

@@ -10,10 +10,7 @@ class ApiClient(private val baseUrl: String) {
 
     fun postSensorData(
         sensorJsonPayload: String,
-        comment: String,
-        callback: (success: Boolean, message: String) -> Unit
-    ) {
-
+        callback: (success: Boolean, message: String) -> Unit) {
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val body = sensorJsonPayload.toRequestBody(mediaType)
 
@@ -26,7 +23,6 @@ class ApiClient(private val baseUrl: String) {
             override fun onFailure(call: Call, e: IOException) {
                 callback(false, e.message ?: "Unknown error")
             }
-
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (it.isSuccessful) {
@@ -64,4 +60,29 @@ class ApiClient(private val baseUrl: String) {
             }
         })
     }
+
+    fun deleteSession(sessionId: String, callback: (success: Boolean, message: String) -> Unit) {
+        val url = "$baseUrl/api/sessions/$sessionId"
+        val request = Request.Builder()
+            .url(url)
+            .delete()
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                callback(false, e.message ?: "Network error")
+            }
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (it.isSuccessful) {
+                        callback(true, "Deleted successfully")
+                    } else {
+                        callback(false, it.message)
+                    }
+                }
+            }
+        })
+    }
 }
+
+

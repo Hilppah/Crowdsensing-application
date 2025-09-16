@@ -71,4 +71,14 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const session = await RecordingSession.findByIdAndDelete(req.params.id);
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    res.json({ message: "Deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

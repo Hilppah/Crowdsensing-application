@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import ViewDataFragment
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -61,19 +62,19 @@ class NewDataFragment : Fragment() {
 
         dateTimeTextView = view.findViewById(R.id.textView)
         displayData = view.findViewById(R.id.viewMeasuredData)
-        commentEditText = view.findViewById(R.id.editTextText)
+        commentEditText = view.findViewById(R.id.editTextTextComment)
         sendButton = view.findViewById(R.id.button)
 
         dateTimeTextView.text = session.startTime.toString()
         displayData.text = """
             Model: ${session.phoneModel} 
-            Measurement: ${session.chosenMeasurement}
-            Frequency: ${session.frequency}
-             HzGPS points: ${session.gps.size}
-             Compass points: ${session.compass.size}
-             Proximity points: ${session.proximity.size}
-             Accelerometer points: ${session.accelerometer.size}
-             Gyroscope points: ${session.gyroscope.size}
+    Measurement: ${session.chosenMeasurement}
+    Frequency: ${session.frequency} Hz
+    GPS points: ${session.gps?.size ?: 0}
+    Compass points: ${session.compass?.size ?: 0}
+    Proximity points: ${session.proximity?.size ?: 0}
+    Accelerometer points: ${session.accelerometer?.size ?: 0}
+    Gyroscope points: ${session.gyroscope?.size ?: 0}
              """.trimIndent()
 
 
@@ -83,7 +84,7 @@ class NewDataFragment : Fragment() {
         val navItems = resources.getStringArray(R.array.spinner_items)
         setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
             when (selectedItem) {
-                "Search Measurements" -> {
+                "View Measurements" -> {
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, ViewDataFragment())
                         .commit()
@@ -103,19 +104,21 @@ class NewDataFragment : Fragment() {
 
         sendButton.setOnClickListener {
             val comment = commentEditText.text.toString()
-            sendData(sessionJson, comment)
+            session = session.copy(description = comment)
+            val updatedSessionJson = mapper.writeValueAsString(session)
+            sendData(updatedSessionJson)
             parentFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragmentContainer, HomeFragment())
+                .replace(R.id.fragmentContainer, HomeFragment())
                 .addToBackStack(null)
                 .commit()
         }
 
+
         return view
     }
 
-    private fun sendData(session: String, comment: String) {
-        apiClient.postSensorData(session, comment) { success, message ->
+    private fun sendData(sessionJson: String) {
+        apiClient.postSensorData(sessionJson) { success, message ->
             activity?.runOnUiThread {
                 if (success) {
                     Toast.makeText(requireContext(), "Data sent successfully: $message", Toast.LENGTH_SHORT).show()
