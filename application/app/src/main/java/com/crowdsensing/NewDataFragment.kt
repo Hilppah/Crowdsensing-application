@@ -68,13 +68,13 @@ class NewDataFragment : Fragment() {
         dateTimeTextView.text = session.startTime.toString()
         displayData.text = """
             Model: ${session.phoneModel} 
-            Measurement: ${session.chosenMeasurement}
-            Frequency: ${session.frequency}
-             HzGPS points: ${session.gps.size}
-             Compass points: ${session.compass.size}
-             Proximity points: ${session.proximity.size}
-             Accelerometer points: ${session.accelerometer.size}
-             Gyroscope points: ${session.gyroscope.size}
+    Measurement: ${session.chosenMeasurement}
+    Frequency: ${session.frequency} Hz
+    GPS points: ${session.gps?.size ?: 0}
+    Compass points: ${session.compass?.size ?: 0}
+    Proximity points: ${session.proximity?.size ?: 0}
+    Accelerometer points: ${session.accelerometer?.size ?: 0}
+    Gyroscope points: ${session.gyroscope?.size ?: 0}
              """.trimIndent()
 
 
@@ -84,7 +84,7 @@ class NewDataFragment : Fragment() {
         val navItems = resources.getStringArray(R.array.spinner_items)
         setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
             when (selectedItem) {
-                "Search Measurements" -> {
+                "View Measurements" -> {
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, ViewDataFragment())
                         .commit()

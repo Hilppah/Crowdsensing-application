@@ -8,9 +8,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.crowdsensing.model.Session
 
 class SessionAdapter(
-    private val sessions: List<Session>,
+    private val sessions: MutableList<Session>,
     private val onItemClick: (Session) -> Unit
 ) : RecyclerView.Adapter<SessionAdapter.SessionViewHolder>() {
+
+    fun updateData(newSessions: List<Session>) {
+        sessions.clear()
+        sessions.addAll(newSessions)
+        notifyDataSetChanged()
+    }
 
     inner class SessionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val date: TextView = itemView.findViewById(R.id.date)
@@ -26,8 +32,8 @@ class SessionAdapter(
 
     override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
         val session = sessions[position]
-        holder.date.text = session.startTime.toString()
-        holder.phoneModel.text = session.phoneModel
+        holder.date.text = session.startTime.toString() ?: "Empty"
+        holder.phoneModel.text = session.phoneModel?: "Unknown"
         holder.comment.text = session.description?.ifBlank { "No comment" }
 
         holder.itemView.setOnClickListener { onItemClick(session) }

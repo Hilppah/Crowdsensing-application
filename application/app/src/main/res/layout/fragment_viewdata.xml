@@ -28,18 +28,31 @@
             android:entries="@array/spinner_items" />
     </androidx.appcompat.widget.Toolbar>
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/editTextText2"
-        android:layout_width="wrap_content"
+        android:layout_width="157dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/toolbar"
         android:layout_alignParentEnd="true"
-        android:layout_marginTop="83dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginTop="71dp"
+        android:layout_marginEnd="243dp"
         android:ems="10"
-        android:textColor="#69a6ff"
+        android:hint="Search..."
         android:inputType="text"
-        android:text="Search..." />
+        android:textColor="#015BA0" />
+
+    <Spinner
+        android:id="@+id/sortSpinner"
+        android:layout_width="171dp"
+        android:layout_height="45dp"
+        android:layout_below="@+id/toolbar"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="71dp"
+        android:layout_marginEnd="8dp"
+        android:entries="@array/sort_options"
+        android:popupBackground="@drawable/dropdown"
+        android:spinnerMode="dropdown"
+        android:textColor="#015BA0" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

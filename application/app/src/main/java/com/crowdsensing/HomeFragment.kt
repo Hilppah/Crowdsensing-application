@@ -72,7 +72,7 @@ class HomeFragment : Fragment() {
 
         setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
             when (selectedItem) {
-                "Search Measurements" -> {
+                "View Measurements" -> {
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, ViewDataFragment())
                         .commit()
