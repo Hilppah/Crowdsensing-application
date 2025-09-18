@@ -31,11 +31,13 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import java.time.Instant
 import kotlin.String
 import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
 
 class HomeFragment : Fragment() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var wifiScanner: WifiScanner
+    private lateinit var bluetoothScanner: BluetoothScanner
 
     private var isRecording = false
 
@@ -48,6 +50,8 @@ class HomeFragment : Fragment() {
     private lateinit var buttonStop: Button
     private lateinit var buttonStart: Button
     private lateinit var useCaseSpinner: MaterialAutoCompleteTextView
+    private lateinit var switchBlue: Switch
+    private lateinit var bluetoothData: TextView
 
     private val gpsData = mutableListOf<GPSData>()
     private val compassData = mutableListOf<CompassData>()
@@ -57,6 +61,7 @@ class HomeFragment : Fragment() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
+    private val BLUETOOTH_PERMISSION_REQUEST_CODE = 1002
     private val wifiScanHandler = Handler()
     private var startingTimeStamp: Instant? = null
 
@@ -88,6 +93,8 @@ class HomeFragment : Fragment() {
         inputSamplingRate = view.findViewById(R.id.input_sampling_rate)
         buttonStart = view.findViewById(R.id.buttonStart)
         buttonStop = view.findViewById(R.id.buttonStop)
+        switchBlue = view.findViewById(R.id.switchBluetooth)
+        bluetoothData = view.findViewById(R.id.textViewBluetooth)
 
         switchMap = mapOf(
             SensorType.GYROSCOPE to view.findViewById(R.id.switchGyro),
@@ -121,6 +128,11 @@ class HomeFragment : Fragment() {
             }
         })
 
+        bluetoothScanner = BluetoothScanner(requireContext()) { result ->
+            bluetoothData.text = result
+            bluetoothData.visibility = if (result.isNotBlank()) View.VISIBLE else View.GONE
+        }
+
         setupSwitchListeners()
         setupButtons()
 
@@ -147,6 +159,30 @@ class HomeFragment : Fragment() {
                 wifiData.visibility = View.GONE
             }
         }
+
+        switchBlue.setOnCheckedChangeListener { _, isChecked ->
+            updateSwitchColors(switchBlue, isChecked, requireContext())
+            if (isChecked) {
+                if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN)
+                    == PackageManager.PERMISSION_GRANTED
+                ) {
+                    bluetoothScanner.start()
+                } else {
+                    requestPermissionsLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.BLUETOOTH_SCAN,
+                            Manifest.permission.BLUETOOTH_CONNECT,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                    )
+                }
+            } else {
+                bluetoothScanner.stop()
+                bluetoothData.text = ""
+                bluetoothData.visibility = View.GONE
+            }
+        }
+
 
         switchMap.forEach { (sensorType, sw) ->
             sw.setOnCheckedChangeListener { _, isChecked ->
@@ -226,17 +262,51 @@ class HomeFragment : Fragment() {
             }
         }
     }
+    private val requestPermissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val allGranted = permissions.all { it.value }
+
+            if (permissions.keys.contains(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+                wifiScanner.start()
+            } else if (permissions.keys.contains(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == false) {
+                wifiData.text = "Wi-Fi: Permission denied"
+            }
+
+            if (permissions.keys.contains(Manifest.permission.BLUETOOTH_SCAN) &&
+                permissions.keys.contains(Manifest.permission.BLUETOOTH_CONNECT)) {
+                val bluetoothScanGranted = permissions[Manifest.permission.BLUETOOTH_SCAN] == true
+                val bluetoothConnectGranted = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true
+                if (bluetoothScanGranted && bluetoothConnectGranted) {
+                    bluetoothScanner.start()
+                } else {
+                    bluetoothData.text = "Bluetooth: Permission denied"
+                }
+            }
+        }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                wifiScanner.start()
-            } else {
-                wifiData.text = "Wi-Fi: Permission denied"
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    wifiScanner.start()
+                } else {
+                    wifiData.text = "Wi-Fi: Permission denied"
+                }
+            }
+            BLUETOOTH_PERMISSION_REQUEST_CODE -> {
+                val allGranted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+                if (allGranted) {
+                    bluetoothScanner.start()
+                } else {
+                    bluetoothData.text = "Bluetooth: Permission denied"
+                }
             }
         }
     }
@@ -267,6 +337,7 @@ class HomeFragment : Fragment() {
         isRecording = false
         sensorController.stopSensors()
         wifiScanner.stop()
+        bluetoothScanner.stop()
     }
 
     override fun onPause() {
@@ -275,6 +346,7 @@ class HomeFragment : Fragment() {
             stopRecording()
         } else {
             wifiScanner.stop()
+            bluetoothScanner.stop()
         }
     }
 }

@@ -162,6 +162,16 @@
         android:textColor="#015BA0"
         android:paddingBottom="1dp"/>
 
+    <Switch
+        android:id="@+id/switchBluetooth"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchWifi"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#015BA0"
+        android:text="Bluetooth scan" />
+
     <Button
         android:id="@+id/buttonStart"
         android:layout_centerHorizontal="true"
@@ -246,6 +256,15 @@
         android:text=""
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/textViewCompass"/>
+    <TextView
+        android:id="@+id/textViewBluetooth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textColor="#015BA0"
+        android:text=""
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/textViewWifi"/>
 
 </RelativeLayout>
 </ScrollView>

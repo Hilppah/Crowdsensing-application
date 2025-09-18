@@ -78,10 +78,10 @@ object Sensors {
             SensorManager.getOrientation(R, orientation)
             val azimuthRad = orientation[0]
             val azimuthDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
-            val normalized = (azimuthDeg + 360) % 360
+            val normalized = ((azimuthDeg + 360f) % 360f).toDouble()
 
             Session.CompassData(
-                compassData = normalized.toDouble(),
+                compassData = normalized,
                 timestamp = Instant.now()
             )
         } else {
@@ -92,5 +92,9 @@ object Sensors {
     fun reset() {
         hasGravity = false
         hasMagnet = false
+        accelGravity.fill(0f)
+        accelLin.fill(0f)
+        gravity.fill(0f)
+        geomagnetic.fill(0f)
     }
-}
+    }
