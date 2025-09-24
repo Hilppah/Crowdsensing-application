@@ -29,7 +29,6 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import java.time.Instant
-import kotlin.String
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -61,7 +60,6 @@ class HomeFragment : Fragment() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
     private val wifiScanInterval: Long = 5000
-    private val BLUETOOTH_PERMISSION_REQUEST_CODE = 1002
     private val wifiScanHandler = Handler()
     private var startingTimeStamp: Instant? = null
 
@@ -76,12 +74,10 @@ class HomeFragment : Fragment() {
         val navItems = resources.getStringArray(R.array.spinner_items)
 
         setupNavigationSpinner(navToolBar, navItems) { selectedItem ->
-            when (selectedItem) {
-                "View Measurements" -> {
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, ViewDataFragment())
-                        .commit()
-                }
+            if (selectedItem == "View Measurements") {
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, ViewDataFragment())
+                    .commit()
             }
         }
 
@@ -100,14 +96,16 @@ class HomeFragment : Fragment() {
             SensorType.GYROSCOPE to view.findViewById(R.id.switchGyro),
             SensorType.ACCELEROMETER to view.findViewById(R.id.switchAccelerometer),
             SensorType.PROXIMITY to view.findViewById(R.id.switchProximity),
-            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.switchCompass)
+            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.switchCompass),
+            SensorType.GPS to view.findViewById(R.id.switchGPS)
         )
 
         textViewMap = mapOf(
             SensorType.GYROSCOPE to view.findViewById(R.id.textViewGyro),
             SensorType.ACCELEROMETER to view.findViewById(R.id.textViewAccelerometer),
             SensorType.PROXIMITY to view.findViewById(R.id.textViewProximity),
-            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.textViewCompass)
+            SensorType.MAGNETIC_FIELD to view.findViewById(R.id.textViewCompass),
+            SensorType.GPS to view.findViewById(R.id.textViewGPS)
         )
 
         wifiScanner = WifiScanner(
@@ -148,10 +146,7 @@ class HomeFragment : Fragment() {
                 ) {
                     wifiScanner.start()
                 } else {
-                    requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        LOCATION_PERMISSION_REQUEST_CODE
-                    )
+                    requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
                 }
             } else {
                 wifiScanner.stop()
@@ -183,11 +178,9 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         switchMap.forEach { (sensorType, sw) ->
             sw.setOnCheckedChangeListener { _, isChecked ->
                 updateSwitchColors(sw, isChecked, requireContext())
-
                 val textView = textViewMap[sensorType]
                 if (!isChecked) {
                     textView?.text = ""
@@ -211,6 +204,7 @@ class HomeFragment : Fragment() {
             isRecording = false
             sensorController.stopSensors()
             wifiScanner.stop()
+            bluetoothScanner.stop()
 
             val deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}"
             val selectedUseCase = useCaseSpinner.text.toString()
@@ -232,13 +226,11 @@ class HomeFragment : Fragment() {
             Log.i("recordedSession", sessionRecording.toString())
 
             parentFragmentManager.beginTransaction()
-                .replace(
-                    R.id.fragmentContainer,
-                    NewDataFragment.newInstance(sessionRecording)
-                )
+                .replace(R.id.fragmentContainer, NewDataFragment.newInstance(sessionRecording))
                 .addToBackStack(null)
                 .commit()
-        } }
+        }
+    }
 
     fun onSensorDataUpdated(sensorType: SensorType, data: Any) {
         activity?.runOnUiThread {
@@ -254,75 +246,66 @@ class HomeFragment : Fragment() {
 
             val switch = switchMap[sensorType]
             val textView = textViewMap[sensorType]
+
             if (switch?.isChecked == true) {
-                textView?.text = data.toString()
                 textView?.visibility = View.VISIBLE
+                textView?.text = when (data) {
+                    is CompassData -> {
+                        val azimuth = data.compassData
+                        val direction = when {
+                            azimuth in 337.5..360.0 || azimuth in 0.0..22.5 -> "North"
+                            azimuth in 22.5..67.5 -> "Northeast"
+                            azimuth in 67.5..112.5 -> "East"
+                            azimuth in 112.5..157.5 -> "Southeast"
+                            azimuth in 157.5..202.5 -> "South"
+                            azimuth in 202.5..247.5 -> "Southwest"
+                            azimuth in 247.5..292.5 -> "West"
+                            azimuth in 292.5..337.5 -> "Northwest"
+                            else -> ""
+                        }
+                        "CompassData( $direction (${azimuth.toInt()}°))"
+                    }
+                    is GPSData -> "GPSData( Lat: ${data.latitude}, Lng: ${data.longitude})"
+                    else -> data.toString()
+                }
             } else {
                 textView?.visibility = View.GONE
             }
         }
     }
+
     private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val allGranted = permissions.all { it.value }
-
-            if (permissions.keys.contains(Manifest.permission.ACCESS_FINE_LOCATION) &&
-                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
                 wifiScanner.start()
-            } else if (permissions.keys.contains(Manifest.permission.ACCESS_FINE_LOCATION) &&
-                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == false) {
-                wifiData.text = "Wi-Fi: Permission denied"
+            } else {
+                wifiData.text = "Wi-Fi/GPS: Permission denied"
             }
-
-            if (permissions.keys.contains(Manifest.permission.BLUETOOTH_SCAN) &&
-                permissions.keys.contains(Manifest.permission.BLUETOOTH_CONNECT)) {
-                val bluetoothScanGranted = permissions[Manifest.permission.BLUETOOTH_SCAN] == true
-                val bluetoothConnectGranted = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true
-                if (bluetoothScanGranted && bluetoothConnectGranted) {
-                    bluetoothScanner.start()
-                } else {
-                    bluetoothData.text = "Bluetooth: Permission denied"
-                }
+            val bluetoothScanGranted = permissions[Manifest.permission.BLUETOOTH_SCAN] == true
+            val bluetoothConnectGranted = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true
+            if (bluetoothScanGranted && bluetoothConnectGranted) {
+                bluetoothScanner.start()
+            } else {
+                bluetoothData.text = "Bluetooth: Permission denied"
             }
         }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    wifiScanner.start()
-                } else {
-                    wifiData.text = "Wi-Fi: Permission denied"
-                }
-            }
-            BLUETOOTH_PERMISSION_REQUEST_CODE -> {
-                val allGranted = grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }
-                if (allGranted) {
-                    bluetoothScanner.start()
-                } else {
-                    bluetoothData.text = "Bluetooth: Permission denied"
-                }
-            }
-        }
-    }
 
     private fun startRecording(rate: Long) {
+        if (switchMap[SensorType.GPS]?.isChecked == true &&
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+            return
+        }
+
         isRecording = true
         clearData()
-
         startingTimeStamp = Instant.now()
 
         val selectedSensors = switchMap.filterValues { it.isChecked }.keys
         sensorController.startSensors(selectedSensors, rate)
 
-        if (switchWifi.isChecked) {
-            wifiScanner.start()
-        }
+        if (switchWifi.isChecked) wifiScanner.start()
     }
 
     private fun clearData() {

@@ -199,23 +199,27 @@
 
     <TextView
         android:id="@+id/textViewGyro"
+        android:gravity="center_horizontal"
         android:textColor="#015BA0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/switchCompass"
+        android:layout_below="@+id/switchBluetooth"
         android:layout_marginTop="15dp"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:text=""
+        android:paddingBottom="8dp"/>
 
     <TextView
         android:id="@+id/textViewGPS"
+        android:gravity="center_horizontal"
         android:textColor="#015BA0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewGyro"
         android:layout_marginTop="1dp"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:text=""
+        android:paddingBottom="8dp"/>
 
     <TextView
         android:id="@+id/textViewAccelerometer"
@@ -225,7 +229,9 @@
         android:layout_marginTop="1dp"
         android:textColor="#015BA0"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:text=""
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp"/>
 
     <TextView
         android:id="@+id/textViewProximity"
@@ -235,7 +241,9 @@
         android:layout_marginTop="1dp"
         android:textColor="#015BA0"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:text=""
+        android:gravity="center_horizontal"
+        android:paddingBottom="8dp"/>
 
     <TextView
         android:id="@+id/textViewCompass"
@@ -243,9 +251,11 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewProximity"
         android:layout_marginTop="1dp"
+        android:gravity="center_horizontal"
         android:textColor="#015BA0"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:text=""
+        android:paddingBottom="8dp"/>
 
     <TextView
         android:id="@+id/textViewWifi"
@@ -254,8 +264,10 @@
         android:layout_marginTop="1dp"
         android:textColor="#015BA0"
         android:text=""
+        android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewCompass"/>
+        android:layout_below="@+id/textViewCompass"
+        android:paddingBottom="8dp"/>
     <TextView
         android:id="@+id/textViewBluetooth"
         android:layout_width="wrap_content"
@@ -263,8 +275,10 @@
         android:layout_marginTop="1dp"
         android:textColor="#015BA0"
         android:text=""
+        android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewWifi"/>
+        android:layout_below="@+id/textViewWifi"
+        android:paddingBottom="8dp"/>
 
 </RelativeLayout>
 </ScrollView>

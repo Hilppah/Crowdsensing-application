@@ -188,7 +188,6 @@ class ViewDataFragment : Fragment() {
                 activity?.runOnUiThread {
                     if (success) {
                         Toast.makeText(requireContext(), "Session deleted", Toast.LENGTH_SHORT).show()
-                        // Remove from displayed lists and update RecyclerView
                         allSessions = allSessions.filter { it.id != session.id }
                         displayedSessions = displayedSessions.filter { it.id != session.id }
                         updateRecyclerView(displayedSessions)
