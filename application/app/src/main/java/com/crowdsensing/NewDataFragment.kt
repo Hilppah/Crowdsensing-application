@@ -14,7 +14,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.crowdsensing.ViewUtils.setupNavigationSpinner
+import com.crowdsensing.model.BluetoothScan
 import com.crowdsensing.model.Session
+import com.crowdsensing.model.WifiScan
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -75,6 +77,8 @@ class NewDataFragment : Fragment() {
     Proximity points: ${session.proximity?.size ?: 0}
     Accelerometer points: ${session.accelerometer?.size ?: 0}
     Gyroscope points: ${session.gyroscope?.size ?: 0}
+    Wifi scan points: ${session.wifi?.size ?: 0}
+    Bluetooth scan points: ${session.bluetooth?.size ?: 0}
              """.trimIndent()
 
 
