@@ -70,7 +70,8 @@ class ViewDataFragment : Fragment() {
     private fun setupSearchBar() {
         val suggestions = listOf(
             "Walk", "Run", "Turn left", "Turn right", "Walk up stairs", "Walk down stairs",
-            "Google Pixel", "Samsung Galaxy", "iPhone"
+            "Google Pixel", "Samsung Galaxy", "iPhone",
+            "GPS", "Compass", "Proximity", "Accelerometer", "Gyroscope", "Wi-Fi", "Bluetooth"
         )
         val adapter = ArrayAdapter(
             requireContext(),
@@ -82,7 +83,34 @@ class ViewDataFragment : Fragment() {
             val query = editable.toString().lowercase()
             displayedSessions = allSessions.filter { session ->
                 session.chosenMeasurement?.lowercase()?.contains(query) == true ||
-                        session.phoneModel.lowercase().contains(query)}
+                        session.phoneModel.lowercase().contains(query) ||
+                        session.gps?.any { gps ->
+                            gps.latitude.toString().contains(query) ||
+                                    gps.longitude.toString().contains(query)
+                        } == true ||
+                        session.compass?.any { compass ->
+                            compass.compassData.toString().contains(query)
+                        } == true ||
+                        session.proximity?.any { prox ->
+                            prox.proximity.toString().contains(query)
+                        } == true ||
+                        session.accelerometer?.any { accel ->
+                            "${accel.accelX} ${accel.accelY} ${accel.accelZ}".contains(query)
+                        } == true ||
+                        session.gyroscope?.any { gyro ->
+                            "${gyro.gyroX} ${gyro.gyroY} ${gyro.gyroZ}".contains(query)
+                        } == true ||
+                        session.wifi?.any { wifi ->
+                            wifi.ssid.lowercase().contains(query) ||
+                                    wifi.rssi.toString().contains(query) ||
+                                    wifi.status.lowercase().contains(query)
+                        } == true ||
+                        session.bluetooth?.any { bt ->
+                            bt.name.lowercase().contains(query) ||
+                                    bt.address.lowercase().contains(query) ||
+                                    bt.rssi.toString().contains(query) ||
+                                    bt.status.lowercase().contains(query)
+                        } == true }
             applySorting()
         }
     }
@@ -154,6 +182,14 @@ class ViewDataFragment : Fragment() {
             "X=${it.gyroX}, Y=${it.gyroY}, Z=${it.gyroZ}, t=${it.timestamp}"
         } ?: "No Gyroscope data"
 
+        val wifiData = session.wifi?.joinToString("\n") {
+            "SSID=${it.ssid}, RSSI=${it.rssi} dBm, Status=${it.status}, t=${it.timestamp}"
+        } ?: "No Wi-Fi data"
+
+        val bluetoothData = session.bluetooth?.joinToString("\n") {
+            "Name=${it.name}, Addr=${it.address}, RSSI=${it.rssi} dBm, Status=${it.status}, t=${it.timestamp}"
+        } ?: "No Bluetooth data"
+
         val message = """
         Model: ${session.phoneModel}
         Start: ${session.startTime}
@@ -171,6 +207,10 @@ class ViewDataFragment : Fragment() {
         Accelerometer: $accelData
 
         Gyroscope: $gyroData
+        
+        Wifi: $wifiData
+        
+        Bluetooth: $bluetoothData
     """.trimIndent()
 
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
