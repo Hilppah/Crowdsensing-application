@@ -27,7 +27,7 @@ import androidx.core.widget.doAfterTextChanged
 class ViewDataFragment : Fragment() {
 
     private val sessionList = mutableListOf<Session>()
-    private val apiClient = ApiClient("http://10.0.2.2:3000")
+    private val apiClient = ApiClient("https://crowdsensing-application-1.onrender.com")
     private val mapper = jacksonObjectMapper().apply { findAndRegisterModules()}
     private lateinit var sessionAdapter: SessionAdapter
     private lateinit var searchBar: AutoCompleteTextView
