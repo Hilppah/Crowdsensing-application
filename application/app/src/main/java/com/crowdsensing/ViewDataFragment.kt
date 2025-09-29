@@ -7,6 +7,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -71,7 +72,6 @@ class ViewDataFragment : Fragment() {
         val suggestions = listOf(
             "Walk", "Run", "Turn left", "Turn right", "Walk up stairs", "Walk down stairs",
             "Google Pixel", "Samsung Galaxy", "iPhone",
-            "GPS", "Compass", "Proximity", "Accelerometer", "Gyroscope", "Wi-Fi", "Bluetooth"
         )
         val adapter = ArrayAdapter(
             requireContext(),
@@ -197,7 +197,7 @@ class ViewDataFragment : Fragment() {
         Measurement: ${session.chosenMeasurement}
         Frequency: ${session.frequency} Hz
         Comment: ${session.description}
-        
+
         GPS: $gpsData
 
         Compass: $compassData
@@ -208,35 +208,34 @@ class ViewDataFragment : Fragment() {
 
         Gyroscope: $gyroData
         
-        Wifi: $wifiData
+        Wi-Fi: $wifiData
         
         Bluetooth: $bluetoothData
     """.trimIndent()
 
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.view_data_session, null)
+        val textView = dialogView.findViewById<TextView>(R.id.sessionDetailsText)
+        textView.text = message
+
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Session Details")
-            .setMessage(message)
+            .setView(dialogView)
             .setPositiveButton("Close", null)
-            .show()
-
-        val builder = androidx.appcompat.app.AlertDialog.Builder(requireContext())
-        builder.setTitle("Session Details")
-        builder.setMessage(message)
-        builder.setPositiveButton("Close", null)
-        builder.setNegativeButton("Delete") { _, _ ->
-            apiClient.deleteSession(session.id ?: "") { success, msg ->
-                activity?.runOnUiThread {
-                    if (success) {
-                        Toast.makeText(requireContext(), "Session deleted", Toast.LENGTH_SHORT).show()
-                        allSessions = allSessions.filter { it.id != session.id }
-                        displayedSessions = displayedSessions.filter { it.id != session.id }
-                        updateRecyclerView(displayedSessions)
-                    } else {
-                        Toast.makeText(requireContext(), "Delete failed: $msg", Toast.LENGTH_SHORT).show()
+            .setNegativeButton("Delete") { _, _ ->
+                apiClient.deleteSession(session.id ?: "") { success, msg ->
+                    activity?.runOnUiThread {
+                        if (success) {
+                            Toast.makeText(requireContext(), "Session deleted", Toast.LENGTH_SHORT).show()
+                            allSessions = allSessions.filter { it.id != session.id }
+                            displayedSessions = displayedSessions.filter { it.id != session.id }
+                            updateRecyclerView(displayedSessions)
+                        } else {
+                            Toast.makeText(requireContext(), "Delete failed: $msg", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
-        }
-        builder.show()
+            .show()
     }
 }

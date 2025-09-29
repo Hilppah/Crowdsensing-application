@@ -175,7 +175,7 @@
     <Button
         android:id="@+id/buttonStart"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewBluetooth"
+        android:layout_below="@+id/sensorOutputScroll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#BE92A2"
@@ -197,88 +197,82 @@
         android:text="Stop"
         android:layout_gravity="center"/>
 
-    <TextView
-        android:id="@+id/textViewGyro"
-        android:gravity="center_horizontal"
-        android:textColor="#015BA0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/sensorOutputScroll"
+        android:layout_width="290dp"
+        android:layout_height="150dp"
         android:layout_below="@+id/switchBluetooth"
-        android:layout_marginTop="15dp"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:paddingBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/textViewGPS"
-        android:gravity="center_horizontal"
-        android:textColor="#015BA0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewGyro"
-        android:layout_marginTop="1dp"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:paddingBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/textViewAccelerometer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewGPS"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:gravity="center_horizontal"
-        android:paddingBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/textViewProximity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewAccelerometer"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:gravity="center_horizontal"
-        android:paddingBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/textViewCompass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewProximity"
-        android:layout_marginTop="1dp"
-        android:gravity="center_horizontal"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text=""
-        android:paddingBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/textViewWifi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:text=""
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:scrollbars="vertical"
         android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewCompass"
-        android:paddingBottom="8dp"/>
-    <TextView
-        android:id="@+id/textViewBluetooth"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:text=""
-        android:gravity="center_horizontal"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewWifi"
-        android:paddingBottom="8dp"/>
+        android:textColor="#BE92A2"
+        android:background="#DACEEE">
 
-</RelativeLayout>
+            <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:gravity="center_horizontal">
+
+             <TextView
+                android:id="@+id/textViewGyro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+                <TextView
+                android:id="@+id/textViewGPS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewAccelerometer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewProximity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewCompass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewWifi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewBluetooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+            </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
 </ScrollView>
