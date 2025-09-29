@@ -1,68 +1,62 @@
 package com.crowdsensing
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
-import androidx.core.content.ContextCompat
 import android.os.Handler
+import com.crowdsensing.model.WifiScan
+import kotlin.math.pow
 
 class WifiScanner(
     private val context: Context,
     private val wifiManager: WifiManager,
     private val handler: Handler,
-    private val interval: Long,
-    private val updateCallback: (String) -> Unit
+    private val scanInterval: Long,
+    private val callback: (String, List<WifiScan>) -> Unit
 ) {
-    private var isRunning = false
     private val scanRunnable = object : Runnable {
         override fun run() {
             scan()
-            handler.postDelayed(this, interval)
+            handler.postDelayed(this, scanInterval)
         }
+    }
+
+    fun scan() {
+        val results = wifiManager.scanResults
+        val networks = results.map {
+            val distance = calculateDistance(it.level, it.frequency)
+            WifiScan(
+                ssid = it.SSID.ifBlank { "<hidden>" },
+                rssi = it.level,
+                status = proximityStatus(it.SSID, it.level),
+                distance = distance
+            )
+        }
+        val summary = "Found ${networks.size} networks"
+        callback(summary, networks)
     }
 
     fun start() {
-        if (isRunning) return
-        isRunning = true
-        scanRunnable.run()
+        handler.post(scanRunnable)
     }
 
     fun stop() {
-        if (!isRunning) return
-        isRunning = false
         handler.removeCallbacks(scanRunnable)
     }
 
-    private fun scan() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            updateCallback("Wi-Fi Location permission denied")
-            return
-        }
+    private fun calculateDistance(rssi: Int, freqMHz: Int): Double {
+        val exp = (27.55 - (20 * Math.log10(freqMHz.toDouble())) + kotlin.math.abs(rssi)) / 20.0
+        return 10.0.pow(exp)
+    }
 
-        try {
-            if (!wifiManager.isWifiEnabled) {
-                updateCallback("Wi-Fi is disabled")
-                return
-            }
-
-            val success = wifiManager.startScan()
-            if (!success) {
-                updateCallback("Wi-Fi scan failed")
-                return
-            }
-
-            val results = wifiManager.scanResults
-            if (results.isNotEmpty()) {
-                val sb = StringBuilder("Nearby Wi-Fi Networks:\n")
-                results.take(5).forEach { sb.append("${it.SSID} - ${it.level} dBm\n") }
-                updateCallback(sb.toString())
-            } else {
-                updateCallback("No Wi-Fi networks found")
-            }
-        } catch (e: SecurityException) {
-            updateCallback("Wi-Fi scan failed: permission denied")
+    private val lastRssiMap = mutableMapOf<String, Int>()
+    private fun proximityStatus(key: String, newRssi: Int): String {
+        val lastRssi = lastRssiMap[key]
+        lastRssiMap[key] = newRssi
+        return when {
+            lastRssi == null -> "first seen"
+            newRssi > lastRssi -> "closer"
+            newRssi < lastRssi -> "further"
+            else -> "same"
         }
     }
 }

@@ -22,6 +22,8 @@ data class Session(
     val proximity: List<ProximityData>? = null,
     val accelerometer: List<AccelerometerData>? = null,
     val gyroscope: List<GyroscopeData>? = null,
+    val wifi: List<WifiData>? = null,
+    val bluetooth: List<BluetoothData>  ? = null,
     val chosenMeasurement: String? = null
 ) : Parcelable {
 
@@ -73,5 +75,26 @@ data class Session(
         val gyroZ: Double,
         val timestamp: Instant,
         val stability: Int? = null
+    ) : Parcelable
+
+    @Parcelize
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class WifiData(
+        @JsonProperty("_id") val id: String? = null,
+        val ssid: String,
+        val rssi: Int,
+        val status: String,
+        val timestamp: Instant
+    ) : Parcelable
+
+    @Parcelize
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class BluetoothData(
+        @JsonProperty("_id") val id: String? = null,
+        val name: String,
+        val address: String,
+        val rssi: Int,
+        val status: String,
+        val timestamp: Instant
     ) : Parcelable
 }

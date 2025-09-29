@@ -3,6 +3,7 @@ package com.crowdsensing
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
+import android.location.Location
 import com.crowdsensing.model.Session
 import java.time.Instant
 
@@ -15,11 +16,12 @@ object Sensors {
     private var hasGravity = false
     private var hasMagnet = false
 
-    enum class SensorType(val androidSensorType: Int) {
+    enum class SensorType(val androidSensorType: Int?) {
         GYROSCOPE(Sensor.TYPE_GYROSCOPE),
         ACCELEROMETER(Sensor.TYPE_ACCELEROMETER),
         PROXIMITY(Sensor.TYPE_PROXIMITY),
-        MAGNETIC_FIELD(Sensor.TYPE_MAGNETIC_FIELD)
+        MAGNETIC_FIELD(Sensor.TYPE_MAGNETIC_FIELD),
+        GPS(null)
     }
 
     fun sensorAccelerometer(event: SensorEvent): Session.AccelerometerData {
@@ -67,6 +69,13 @@ object Sensors {
         hasMagnet = true
     }
 
+    fun sensorGPS(location: Location): Session.GPSData {
+        return Session.GPSData(
+            latitude = location.latitude,
+            longitude = location.longitude,
+            timestamp = Instant.now()
+            )}
+
     fun getCompassReading(): Session.CompassData? {
         if (!hasGravity || !hasMagnet) return null
 
@@ -78,10 +87,10 @@ object Sensors {
             SensorManager.getOrientation(R, orientation)
             val azimuthRad = orientation[0]
             val azimuthDeg = Math.toDegrees(azimuthRad.toDouble()).toFloat()
-            val normalized = (azimuthDeg + 360) % 360
+            val normalized = ((azimuthDeg + 360f) % 360f).toDouble()
 
             Session.CompassData(
-                compassData = normalized.toDouble(),
+                compassData = normalized,
                 timestamp = Instant.now()
             )
         } else {
@@ -92,5 +101,9 @@ object Sensors {
     fun reset() {
         hasGravity = false
         hasMagnet = false
+        accelGravity.fill(0f)
+        accelLin.fill(0f)
+        gravity.fill(0f)
+        geomagnetic.fill(0f)
     }
-}
+    }

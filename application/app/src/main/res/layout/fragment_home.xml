@@ -162,16 +162,26 @@
         android:textColor="#015BA0"
         android:paddingBottom="1dp"/>
 
+    <Switch
+        android:id="@+id/switchBluetooth"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/switchWifi"
+        android:layout_width="248dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="#015BA0"
+        android:text="Bluetooth scan" />
+
     <Button
         android:id="@+id/buttonStart"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewWifi"
+        android:layout_below="@+id/sensorOutputScroll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="#BE92A2"
         android:background="@drawable/round_buttons"
-        android:layout_marginTop="40dp"
         android:padding="20dp"
+        android:paddingTop="20dp"
         android:text="Start measuring"
         android:layout_marginBottom="10dp"
         android:layout_gravity="center"/>
@@ -187,65 +197,82 @@
         android:text="Stop"
         android:layout_gravity="center"/>
 
-    <TextView
-        android:id="@+id/textViewGyro"
-        android:textColor="#015BA0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/switchCompass"
-        android:layout_marginTop="15dp"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/sensorOutputScroll"
+        android:layout_width="290dp"
+        android:layout_height="150dp"
+        android:layout_below="@+id/switchBluetooth"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:scrollbars="vertical"
+        android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
-        android:text="" />
+        android:textColor="#BE92A2"
+        android:background="#DACEEE">
 
-    <TextView
-        android:id="@+id/textViewGPS"
-        android:textColor="#015BA0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewGyro"
-        android:layout_marginTop="1dp"
-        android:layout_centerHorizontal="true"
-        android:text="" />
+            <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:gravity="center_horizontal">
 
-    <TextView
-        android:id="@+id/textViewAccelerometer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewGPS"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text="" />
+             <TextView
+                android:id="@+id/textViewGyro"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/textViewProximity"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewAccelerometer"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text="" />
+                <TextView
+                android:id="@+id/textViewGPS"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/textViewCompass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textViewProximity"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:layout_centerHorizontal="true"
-        android:text="" />
+            <TextView
+                android:id="@+id/textViewAccelerometer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/textViewWifi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:textColor="#015BA0"
-        android:text=""
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/textViewCompass"/>
+            <TextView
+                android:id="@+id/textViewProximity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
 
-</RelativeLayout>
+            <TextView
+                android:id="@+id/textViewCompass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewWifi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textViewBluetooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#BE92A2"
+                android:gravity="center_horizontal"
+                android:paddingBottom="8dp"/>
+            </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
 </ScrollView>
