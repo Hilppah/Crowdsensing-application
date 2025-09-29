@@ -30,7 +30,7 @@ class NewDataFragment : Fragment() {
     private lateinit var dateTimeTextView: TextView
     private lateinit var session: Session
 
-    private val apiClient = ApiClient("http://10.0.2.2:3000")
+    private val apiClient = ApiClient("https://crowdsensing-application-1.onrender.com")
     val mapper = jacksonObjectMapper()
         .registerKotlinModule()
         .registerModule(JavaTimeModule())
