@@ -1,5 +1,6 @@
 package com.crowdsensing
 
+import android.util.Log
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -25,6 +26,7 @@ class ApiClient(private val baseUrl: String) {
             }
             override fun onResponse(call: Call, response: Response) {
                 response.use {
+                    Log.i("test", it.code.toString() +it.message)
                     if (it.isSuccessful) {
                         callback(true, it.body?.string() ?: "Success")
                     } else {

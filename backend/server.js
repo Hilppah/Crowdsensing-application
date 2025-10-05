@@ -7,7 +7,8 @@ const sessionRoutes = require("./routes/sessions");
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json());
+pp.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors());
 mongoose
   .connect(process.env.MONGO_URI)
