@@ -8,10 +8,13 @@ const {
   ProximityData,
   AccelerometerData,
   GyroData,
+  WiFiData,
+  BluetoothData
 } = require("../models/sensors");
 
 router.post("/", async (req, res) => {
   try {
+    console.log("Received data:", req.body);
     const {
       phoneModel,
       startTime,
@@ -25,6 +28,8 @@ router.post("/", async (req, res) => {
       proximity,
       accelerometer,
       gyroscope,
+      wifi,
+      bluetooth
     } = req.body;
 
     const session = new RecordingSession({
@@ -40,6 +45,8 @@ router.post("/", async (req, res) => {
       proximity,
       accelerometer,
       gyroscope,
+      wifi,
+      bluetooth
     });
 
     await session.save();

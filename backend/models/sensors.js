@@ -49,11 +49,31 @@ const GyroSchema = new mongoose.Schema({
   stability: { type: Number, default: 0 },
 }, { versionKey: false });
 
+const WiFiSchema = new mongoose.Schema({
+  ...commonFields,
+  ssid: { type: String, required: true },
+  rssi: { type: Number, required: true },
+  status: { type: String, required: false },
+  timestamp: { type: Date, required: true },
+  stability: { type: Number, default: 0 },
+}, { versionKey: false });
+const BluetoothSchema = new mongoose.Schema({
+  ...commonFields,
+  name: { type: String },
+  address: { type: String },
+  rssi: { type: Number },
+  status: { type: String },
+  distance: { type: Number },
+  timestamp: { type: Date, required: true },
+}, { versionKey: false });
+
 const GPSData = mongoose.model("GPSData", GPSSchema);
 const CompassData = mongoose.model("CompassData", CompassSchema);
 const ProximityData = mongoose.model("ProximityData", ProximitySchema);
 const AccelerometerData = mongoose.model("AccelerometerData", AccelerometerSchema);
 const GyroData = mongoose.model("GyroData", GyroSchema);
+const WiFiData = mongoose.model("WiFiData", WiFiSchema);
+const BluetoothData = mongoose.model("BluetoothData", BluetoothSchema);
 
 module.exports = {
   GPSData,
@@ -61,4 +81,6 @@ module.exports = {
   ProximityData,
   AccelerometerData,
   GyroData,
+  WiFiData,
+   BluetoothData,
 };
