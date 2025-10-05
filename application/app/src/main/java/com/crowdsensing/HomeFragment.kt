@@ -309,16 +309,18 @@ class HomeFragment : Fragment() {
 
     private val requestPermissionsLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-                wifiScanner.start()
-            } else {
-                wifiData.text = "Wi-Fi/GPS: Permission denied"
-            }
+            val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
             val bluetoothScanGranted = permissions[Manifest.permission.BLUETOOTH_SCAN] == true
             val bluetoothConnectGranted = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true
-            if (bluetoothScanGranted && bluetoothConnectGranted) {
+
+            if (locationGranted && switchWifi.isChecked) {
+                wifiScanner.start()
+            } else if (switchWifi.isChecked) {
+                wifiData.text = "Wi-Fi: Permission denied"
+            }
+            if (bluetoothScanGranted && bluetoothConnectGranted && switchBlue.isChecked) {
                 bluetoothScanner.start()
-            } else {
+            } else if (switchBlue.isChecked) {
                 bluetoothData.text = "Bluetooth: Permission denied"
             }
         }
