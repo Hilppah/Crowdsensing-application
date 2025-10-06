@@ -67,6 +67,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get('/summary', async (req, res) => {
+  try {
+    const sessions = await RecordingSession.find(
+      {},
+      'phoneModel startTime endTime description'
+    )
+    .sort({ startTime: -1 })
+    .limit(10);
+
+    res.json(sessions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const session = await RecordingSession.findById(req.params.id);

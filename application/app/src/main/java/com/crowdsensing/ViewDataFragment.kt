@@ -61,7 +61,7 @@ class ViewDataFragment : Fragment() {
         sessionAdapter = SessionAdapter(sessionList) { session -> showPopup(session) }
         recyclerView.adapter = sessionAdapter
 
-        fetchSessions()
+        fetchSessionSummaries()
         setupSearchBar()
         setupSortSpinner()
 
@@ -138,6 +138,27 @@ class ViewDataFragment : Fragment() {
 
     private fun fetchSessions() {
         apiClient.getData("api/sessions") { success, response ->
+            activity?.runOnUiThread {
+                if (success) {
+                    try {
+                        val sessions: List<Session> = mapper.readValue(response)
+                        allSessions = sessions
+                        displayedSessions = sessions
+                        applySorting()
+                    } catch (e: Exception) {
+                        Log.e("ViewDataFragment", "Parse error", e)
+                        Toast.makeText(requireContext(), "Failed to parse data", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Log.e("ViewDataFragment", "Fetch failed: $response")
+                    Toast.makeText(requireContext(), "Failed to fetch sessions", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun fetchSessionSummaries() {
+        apiClient.getSessionSummaries { success, response ->
             activity?.runOnUiThread {
                 if (success) {
                     try {
