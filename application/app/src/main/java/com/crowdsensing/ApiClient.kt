@@ -90,6 +90,28 @@ class ApiClient(private val baseUrl: String) {
             }
         })
     }
+
+    fun getSessionSummaries(
+        callback: (success: Boolean, responseBody: String) -> Unit
+    ) {
+        val url = "$baseUrl/api/sessions/summary"
+        val request = Request.Builder().url(url).get().build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d("ApiClient", "Network failure: ${e.message}")
+                callback(false, e.message ?: "Unknown error")}
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (it.isSuccessful) {
+                        callback(true, it.body?.string() ?: "")
+                    } else {
+                        callback(false, "Error: ${it.code}")
+                    }
+                }
+            }
+        })
+    }
 }
 
 
