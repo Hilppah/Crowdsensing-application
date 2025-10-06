@@ -100,17 +100,17 @@ class ViewDataFragment : Fragment() {
                         session.gyroscope?.any { gyro ->
                             "${gyro.gyroX} ${gyro.gyroY} ${gyro.gyroZ}".contains(query)
                         } == true ||
-                        session.wifi?.any { wifi ->
-                            wifi.ssid.lowercase().contains(query) ||
-                                    wifi.rssi.toString().contains(query) ||
-                                    wifi.status.lowercase().contains(query)
-                        } == true ||
-                        session.bluetooth?.any { bt ->
-                            bt.name.lowercase().contains(query) ||
-                                    bt.address.lowercase().contains(query) ||
-                                    bt.rssi.toString().contains(query) ||
-                                    bt.status.lowercase().contains(query)
-                        } == true }
+                        (session.wifi?.any { wifi ->
+                            (wifi.ssid?.lowercase() ?: "").contains(query) ||
+                                    (wifi.rssi.toString()).contains(query) ||
+                                    (wifi.status?.lowercase() ?: "").contains(query)
+                        } == true) ||
+                        (session.bluetooth?.any { bt ->
+                            (bt.name?.lowercase() ?: "").contains(query) ||
+                                    (bt.address?.lowercase() ?: "").contains(query) ||
+                                    (bt.rssi.toString()).contains(query) ||
+                                    (bt.status?.lowercase() ?: "").contains(query)
+                        } == true) }
             applySorting()
         }
     }

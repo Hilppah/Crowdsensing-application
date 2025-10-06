@@ -41,20 +41,25 @@ class ApiClient(private val baseUrl: String) {
         endpoint: String,
         callback: (success: Boolean, responseBody: String) -> Unit
     ) {
+        val url = "$baseUrl/$endpoint"
+        Log.i("ApiClient", "Making GET request to $url")
         val request = Request.Builder()
-            .url("$baseUrl/$endpoint")
+            .url(url)
             .get()
             .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                Log.d("ViewDataFragment", "Network failure: ${e.message}")
                 callback(false, e.message ?: "Unknown error")
             }
 
             override fun onResponse(call: Call, response: Response) {
                 response.use {
+                    val bodyString = it.body?.string() ?: ""
+                    Log.i("ApiClient", "Response code: ${it.code}, body: $bodyString")
                     if (it.isSuccessful) {
-                        callback(true, it.body?.string() ?: "")
+                        callback(true, bodyString)
                     } else {
                         callback(false, "Error: ${it.code}")
                     }

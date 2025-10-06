@@ -82,5 +82,5 @@ module.exports = {
   AccelerometerData,
   GyroData,
   WiFiData,
-   BluetoothData,
+  BluetoothData,
 };

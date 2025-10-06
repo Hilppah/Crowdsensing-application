@@ -81,9 +81,9 @@ data class Session(
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class WifiData(
         @JsonProperty("_id") val id: String? = null,
-        val ssid: String,
-        val rssi: Int,
-        val status: String,
+        val ssid: String? = null,
+        val rssi: Int? = null,
+        val status: String? = null,
         val timestamp: Instant
     ) : Parcelable
 
@@ -91,10 +91,10 @@ data class Session(
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class BluetoothData(
         @JsonProperty("_id") val id: String? = null,
-        val name: String,
-        val address: String,
-        val rssi: Int,
-        val status: String,
+        val name: String? = null,
+        val address: String? = null,
+        val rssi: Int? = null,
+        val status: String? = null,
         val timestamp: Instant
     ) : Parcelable
 }

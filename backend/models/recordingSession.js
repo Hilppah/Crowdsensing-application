@@ -49,7 +49,7 @@ const recordingSessionSchema = new mongoose.Schema(
         stability: Number,
       },
     ],
-     wifi: [
+    wifi: [
       {
         ssid: String,
         rssi: Number,
@@ -58,7 +58,7 @@ const recordingSessionSchema = new mongoose.Schema(
         stability: Number,
       },
     ],
-     bluetooth: [
+    bluetooth: [
       {
         name: String,
         address: String,
@@ -66,6 +66,7 @@ const recordingSessionSchema = new mongoose.Schema(
         status: String,
         distance: Number,
         timestamp: Date,
+        stability: Number,
       },
     ],
   },
