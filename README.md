@@ -34,19 +34,35 @@ The backend won't work on your phone if you choose to run it locally
   node server.js
   ```
   
-  ## Database
+## Database
   * The app uses MongoDB Atlas (cloud hosted MongoDB)
   * Add your URI to .env
       * example:
-       ```
-        MONGO_URI=mongodb+srv://<user>:<password>@cluster.yourid.mongodb.net/Crowdsensing 
-      ```
+        
+        ```
+           MONGO_URI=mongodb+srv://<user>:<password>@cluster.yourid.mongodb.net/Crowdsensing 
+        ```
   * Replace <user> and <password> with your MongoDB Atlas credentials
   * Collections initialize automatically when the backend starts
  
-  ##Deployment
-  I used Render for this
-  * Create a new Render Web Service at 
+## Deployment
+  * Go to render.com and create a new project
+  * Choose the "Web Service" option
+  * Choose this repository
+  * Add the build command
+      ```
+      npm --prefix backend install
+      ``` 
+  * Add the start command
+     ```
+     npm --prefix backend start
+     ```
+  * Add the environment variables from your .env
+       * Value is where URI goes
+         ```
+         MONGO_URI=mongodb+srv://<user>:<password>@cluster.yourid.mongodb.net/Crowdsensing 
+         ```
+    * Then deploy web service 
 
   ## Pictures and demo video
   Will be added soon
