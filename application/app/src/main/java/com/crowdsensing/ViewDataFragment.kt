@@ -28,7 +28,7 @@ class ViewDataFragment : Fragment() {
 
     private val sessionList = mutableListOf<Session>()
     private val apiClient = ApiClient("https://crowdsensing-application-1.onrender.com")
-    private val mapper = jacksonObjectMapper().apply { findAndRegisterModules()}
+    private val mapper = jacksonObjectMapper().apply { findAndRegisterModules() }
     private lateinit var sessionAdapter: SessionAdapter
     private lateinit var searchBar: AutoCompleteTextView
     private lateinit var sortSpinner: Spinner
@@ -147,11 +147,13 @@ class ViewDataFragment : Fragment() {
                         applySorting()
                     } catch (e: Exception) {
                         Log.e("ViewDataFragment", "Parse error", e)
-                        Toast.makeText(requireContext(), "Failed to parse data", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Failed to parse data", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 } else {
                     Log.e("ViewDataFragment", "Fetch failed: $response")
-                    Toast.makeText(requireContext(), "Failed to fetch sessions", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Failed to fetch sessions", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -168,11 +170,13 @@ class ViewDataFragment : Fragment() {
                         applySorting()
                     } catch (e: Exception) {
                         Log.e("ViewDataFragment", "Parse error", e)
-                        Toast.makeText(requireContext(), "Failed to parse data", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Failed to parse data", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 } else {
                     Log.e("ViewDataFragment", "Fetch failed: $response")
-                    Toast.makeText(requireContext(), "Failed to fetch sessions", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Failed to fetch sessions", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -183,61 +187,102 @@ class ViewDataFragment : Fragment() {
     }
 
     private fun showPopup(session: Session) {
-        val gpsData = session.gps?.joinToString("\n") {
-            "Lat: ${it.latitude}, Lon: ${it.longitude}, t=${it.timestamp}"
-        } ?: "No GPS data"
+        apiClient.getData("api/sessions/${session.id}") { success, response ->
+            if (success) {
+                Thread {
+                    try {
+                        val fullSession: Session = mapper.readValue(
+                            jacksonObjectMapper().readTree(response)["session"].toString()
+                        )
+                        activity?.runOnUiThread {
+                            displaySessionPopup(fullSession)
+                        }
+                    } catch (e: Exception) {
+                        activity?.runOnUiThread {
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to parse session data",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }.start()
+            } else {
+                activity?.runOnUiThread {
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to fetch session details",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
-        val compassData = session.compass?.joinToString("\n") {
-            "Compass: ${it.compassData}, t=${it.timestamp}"
-        } ?: "No Compass data"
+    class KeyValueAdapter(private val items: List<Pair<String, String>>) :
+        RecyclerView.Adapter<KeyValueAdapter.ViewHolder>() {
 
-        val proximityData = session.proximity?.joinToString("\n") {
-            "Proximity: ${it.proximity}, t=${it.timestamp}"
-        } ?: "No Proximity data"
+        class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val keyText: TextView = view.findViewById(R.id.keyText)
+            val valueText: TextView = view.findViewById(R.id.valueText)
+        }
 
-        val accelData = session.accelerometer?.joinToString("\n") {
-            "X=${it.accelX}, Y=${it.accelY}, Z=${it.accelZ}, t=${it.timestamp}"
-        } ?: "No Accelerometer data"
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_key_value, parent, false)
+            return ViewHolder(view)
+        }
 
-        val gyroData = session.gyroscope?.joinToString("\n") {
-            "X=${it.gyroX}, Y=${it.gyroY}, Z=${it.gyroZ}, t=${it.timestamp}"
-        } ?: "No Gyroscope data"
+        override fun getItemCount() = items.size
 
-        val wifiData = session.wifi?.joinToString("\n") {
-            "SSID=${it.ssid}, RSSI=${it.rssi} dBm, Status=${it.status}, t=${it.timestamp}"
-        } ?: "No Wi-Fi data"
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val (key, value) = items[position]
+            holder.keyText.text = key
+            holder.valueText.text = value
+        }
+    }
 
-        val bluetoothData = session.bluetooth?.joinToString("\n") {
-            "Name=${it.name}, Addr=${it.address}, RSSI=${it.rssi} dBm, Status=${it.status}, t=${it.timestamp}"
-        } ?: "No Bluetooth data"
-
-        val message = """
-        Model: ${session.phoneModel}
-        Start: ${session.startTime}
-        End: ${session.endTime}
-        Measurement: ${session.chosenMeasurement}
-        Frequency: ${session.frequency} Hz
-        Comment: ${session.description}
-
-        GPS: $gpsData
-
-        Compass: $compassData
-
-        Proximity: $proximityData
-
-        Accelerometer: $accelData
-
-        Gyroscope: $gyroData
-        
-        Wi-Fi: $wifiData
-        
-        Bluetooth: $bluetoothData
-    """.trimIndent()
-
+    private fun displaySessionPopup(session: Session) {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.view_data_session, null)
-        val textView = dialogView.findViewById<TextView>(R.id.sessionDetailsText)
-        textView.text = message
+        dialogView.findViewById<TextView>(R.id.modelText).text = "Model: ${session.phoneModel}"
+        dialogView.findViewById<TextView>(R.id.timeText).text =
+            "Start: ${session.startTime}, End: ${session.endTime}, Measurement: ${session.chosenMeasurement}"
+
+        fun setupRecycler(recyclerId: Int, items: List<Pair<String, String>>) {
+            val recycler = dialogView.findViewById<RecyclerView>(recyclerId)
+            recycler.layoutManager = LinearLayoutManager(requireContext())
+            recycler.adapter = KeyValueAdapter(items)
+        }
+
+        setupRecycler(
+            R.id.gpsRecycler,
+            session.gps?.map { "t=${it.timestamp}" to "Lat=${it.latitude}, Lon=${it.longitude}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.proximityRecycler,
+            session.proximity?.map { "t=${it.timestamp}" to "Proximity=${it.proximity}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.accelRecycler,
+            session.accelerometer?.map { "t=${it.timestamp}" to "X=${it.accelX}, Y=${it.accelY}, Z=${it.accelZ}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.gyroRecycler,
+            session.gyroscope?.map { "t=${it.timestamp}" to "X=${it.gyroX}, Y=${it.gyroY}, Z=${it.gyroZ}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.compassRecycler,
+            session.compass?.map { "t=${it.timestamp}" to "Compass=${it.compassData}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.wifiRecycler,
+            session.wifi?.map { "t=${it.timestamp}" to "SSID=${it.ssid}, RSSI=${it.rssi}, Status=${it.status}" } ?: emptyList()
+        )
+        setupRecycler(
+            R.id.blueRecycler,
+            session.bluetooth?.map { "t=${it.timestamp}" to "Name=${it.name}, Addr=${it.address}, RSSI=${it.rssi}, Status=${it.status}" } ?: emptyList()
+        )
 
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Session Details")
