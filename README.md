@@ -9,12 +9,8 @@ In the application, users can collect sensor data from their phone (GPS, acceler
 
 ### Run frontend
 * Clone the project
-* Open in Android Studio
-* Build gradle
-   ```
-   ./gradlew build
-   ```
-* Run on your own device
+* Open the "app" folder in Android Studio
+* Run on your own device or an emulator
 
 ## Run backend locally
 The backend won't work on your phone if you choose to run it locally
