@@ -71,7 +71,7 @@ router.get('/summary', async (req, res) => {
   try {
     const sessions = await RecordingSession.find(
       {},
-      'phoneModel startTime endTime description'
+      'phoneModel startTime endTime description chosenMeasurement'
     )
     .sort({ startTime: -1 })
     .limit(10);

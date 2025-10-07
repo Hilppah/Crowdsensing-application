@@ -1,16 +1,133 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#DACEEE"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/dialog_background">
 
-    <TextView
-        android:id="@+id/sessionDetailsText"
+<LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:lineSpacingExtra="2dp"
-        android:textColor="#BE92A2"
-        />
+        android:textColor="#BE92A2">
+
+        <TextView
+            android:id="@+id/modelText"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_width="wrap_content"
+            android:color="#DACEEE"
+            android:layout_height="wrap_content"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="GPS Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:color="#DACEEE"
+            android:layout_height="wrap_content"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/gpsRecycler"
+            android:textColor="#BE92A2"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/proximityRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="Proximity Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="Accelerometer Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/accelRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/gyroRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="Gyroscope Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/compassRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="Compass Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/wifiRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <TextView
+            android:text="Wi-Fi positioning Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/blueRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:color="#DACEEE"/>
+
+        <TextView
+            android:text="Bluetooth scan Data:"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:color="#DACEEE"
+            android:textColor="#BE92A2"/>
+            </LinearLayout>
 </ScrollView>
