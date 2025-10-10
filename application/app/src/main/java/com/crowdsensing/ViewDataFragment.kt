@@ -23,6 +23,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import androidx.core.widget.doAfterTextChanged
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalQueries.zone
+
 
 class ViewDataFragment : Fragment() {
 
@@ -245,9 +249,16 @@ class ViewDataFragment : Fragment() {
     private fun displaySessionPopup(session: Session) {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.view_data_session, null)
-        dialogView.findViewById<TextView>(R.id.modelText).text = "Model: ${session.phoneModel}"
+        dialogView.findViewById<TextView>(R.id.modelText).text =
+            "Model: ${session.phoneModel}"
+
+        val zone = ZoneId.systemDefault()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z")
+        val startLocal = session.startTime.atZone(zone).format(formatter)
+        val endLocal = session.endTime.atZone(zone).format(formatter)
+
         dialogView.findViewById<TextView>(R.id.timeText).text =
-            "Start: ${session.startTime}, End: ${session.endTime}, Measurement: ${session.chosenMeasurement}"
+            "Start: $startLocal\nEnd: $endLocal\nMeasurement: ${session.chosenMeasurement}"
 
         fun setupRecycler(recyclerId: Int, items: List<Pair<String, String>>) {
             val recycler = dialogView.findViewById<RecyclerView>(recyclerId)

@@ -86,7 +86,7 @@
         android:layout_below="@+id/useCaseSpinnerLayout"
         android:layout_marginTop="20dp"
         android:ems="10"
-        android:text="What rate you want the data to be saved:"
+        android:text="What rate do you want the data to be saved:"
         android:textAlignment="center"
         android:textColor="#015BA0"
         android:textSize="18sp" />
