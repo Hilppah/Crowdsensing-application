@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.crowdsensing.model.Session
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class SessionAdapter(
     private val sessions: MutableList<Session>,
@@ -32,7 +34,9 @@ class SessionAdapter(
 
     override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
         val session = sessions[position]
-        holder.date.text = session.startTime.toString() ?: "Empty"
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val localStart = session.startTime.atZone(ZoneId.systemDefault()).format(formatter)
+        holder.date.text = localStart
         holder.phoneModel.text = session.phoneModel?: "Unknown"
         holder.comment.text = session.description?.ifBlank { "No comment" }
 
